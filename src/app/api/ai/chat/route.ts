@@ -6,6 +6,8 @@ export async function POST(req: NextRequest) {
     const { messages, model = MODELS.openthaigpt } = await req.json();
     const apiKey = process.env.THAILLM_API_KEY;
 
+    console.log('Calling AI API:', THAILLM_BASE, 'Model:', model, 'Key exists:', !!apiKey);
+
     if (!apiKey) {
       return NextResponse.json(
         { error: 'ThaiLLM API key not configured' },
@@ -41,11 +43,12 @@ export async function POST(req: NextRequest) {
     // Remove <think>...</think> content if present
     content = content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
 
+    console.log('AI Response Success:', content.slice(0, 50) + '...');
     return NextResponse.json({ content });
   } catch (error) {
     console.error('AI Chat API error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

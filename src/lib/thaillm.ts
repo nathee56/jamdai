@@ -1,4 +1,4 @@
-export const THAILLM_BASE = 'http://thaillm.or.th/api/v1';
+export const THAILLM_BASE = 'https://api.aieat.or.th/v1'; // Updated to HTTPS and official endpoint
 
 export const MODELS = {
   openthaigpt: 'openthaigpt-thaillm-8b-instruct-v7.2',
