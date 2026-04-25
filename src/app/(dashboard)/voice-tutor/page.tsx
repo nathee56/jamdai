@@ -56,11 +56,19 @@ export default function VoiceTutorPage() {
     }
   };
 
-  const handleMicToggle = () => {
+  const handleMicToggle = async () => {
     if (isListening) {
       stopListening();
-      const finalText = transcript + interimTranscript;
-      if (finalText.trim()) handleAskAI(finalText);
+      // Wait a bit for the final transcript to settle
+      setTimeout(() => {
+        const finalText = transcript.trim();
+        console.log('Voice finished, asking AI:', finalText);
+        if (finalText) {
+          handleAskAI(finalText);
+        } else {
+          console.warn('Transcript is empty after stopping');
+        }
+      }, 500);
     } else {
       clearTranscript();
       setAiResponse('');
@@ -143,10 +151,18 @@ export default function VoiceTutorPage() {
 
           {/* Transcript */}
           {(transcript || interimTranscript) && (
-            <div className="card" style={{ width: '100%', background: 'var(--cream)' }}>
-              <div style={{ fontSize: 12, color: 'var(--text-hint)', marginBottom: 6 }}>คุณพูดว่า:</div>
-              <p style={{ fontSize: 15, color: 'var(--text-primary)' }}>
-                {transcript}<span style={{ color: 'var(--text-hint)' }}>{interimTranscript}</span>
+            <div className="card" style={{ width: '100%', background: 'var(--surface)', border: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <div style={{ fontSize: 12, color: 'var(--text-hint)' }}>สิ่งที่คุณพูด:</div>
+                {!isListening && !isThinking && (
+                  <button className="btn-primary" onClick={() => handleAskAI(transcript)} 
+                    style={{ padding: '4px 12px', fontSize: 12, borderRadius: 20 }}>
+                    <IconSparkle size={14} /> ถาม AI ซ้ำ
+                  </button>
+                )}
+              </div>
+              <p style={{ fontSize: 16, color: 'var(--text-primary)', lineHeight: 1.6 }}>
+                {transcript}<span style={{ color: 'var(--text-hint)', opacity: 0.7 }}>{interimTranscript}</span>
               </p>
             </div>
           )}
