@@ -33,24 +33,27 @@ export default function VoiceTutorPage() {
 
   const selectedNote = notes.find(n => n.id === selectedNoteId);
 
+  const [errorDetails, setErrorDetails] = useState('');
+
   const handleAskAI = async (question: string) => {
     if (!question.trim()) return;
     setIsThinking(true);
     setAiResponse('');
+    setErrorDetails('');
     try {
       const messages = [
-        { role: 'system', content: systemPrompt + '\nตอบสั้นกระชับ เหมาะกับการฟัง ไม่ใช้ markdown ไม่ต้องมีข้อความ "แนะนำ:" ท้ายคำตอบ' },
+        { role: 'system', content: 'คุณคือ Study AI ผู้ช่วยนักศึกษา ตอบสั้นกระชับ เป็นกันเอง ไม่ใช้ markdown ไม่ต้องมีข้อความแนะนำท้ายคำตอบ' },
         { role: 'user', content: question },
       ];
       const res = await callLLM(MODELS.openthaigpt, messages);
       const text = res.choices[0].message.content;
-      // Remove suggestion line
       const clean = text.split('\n').filter((l: string) => !l.startsWith('แนะนำ:')).join('\n').trim();
       setAiResponse(clean);
       if (autoSpeak) speak(clean);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Voice AI Error:', err);
       setAiResponse('ขออภัย ไม่สามารถตอบได้ในขณะนี้');
+      setErrorDetails(err.message || String(err));
     } finally {
       setIsThinking(false);
     }
@@ -59,19 +62,16 @@ export default function VoiceTutorPage() {
   const handleMicToggle = async () => {
     if (isListening) {
       stopListening();
-      // Wait a bit for the final transcript to settle
+      // Use the transcript immediately but give it a tiny moment to settle
       setTimeout(() => {
-        const finalText = transcript.trim();
-        console.log('Voice finished, asking AI:', finalText);
-        if (finalText) {
-          handleAskAI(finalText);
-        } else {
-          console.warn('Transcript is empty after stopping');
+        if (transcript.trim()) {
+          handleAskAI(transcript.trim());
         }
-      }, 500);
+      }, 300);
     } else {
       clearTranscript();
       setAiResponse('');
+      setErrorDetails('');
       startListening();
     }
   };
@@ -187,6 +187,11 @@ export default function VoiceTutorPage() {
                 )}
               </div>
               <p style={{ fontSize: 15, lineHeight: 1.8, color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>{aiResponse}</p>
+              {errorDetails && (
+                <div style={{ marginTop: 12, padding: '8px 12px', background: 'var(--danger-light)', borderRadius: 8, fontSize: 11, color: 'var(--danger)' }}>
+                  Error: {errorDetails}
+                </div>
+              )}
             </div>
           )}
 
