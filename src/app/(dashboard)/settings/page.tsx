@@ -2,11 +2,13 @@
 
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useTheme } from '@/lib/hooks/useTheme';
-import { IconSun, IconMoon, IconLogOut, IconUser, IconCloud } from '@/components/ui/Icons';
+import { usePWA } from '@/lib/hooks/usePWA';
+import { IconSun, IconMoon, IconLogOut, IconUser, IconCloud, IconDownload } from '@/components/ui/Icons';
 
 export default function SettingsPage() {
   const { user, signOut, signIn, googleAccessToken } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { installPrompt, isInstalled, installApp } = usePWA();
 
   return (
     <div className="animate-fade-in" style={{ maxWidth: 600 }}>
@@ -64,6 +66,21 @@ export default function SettingsPage() {
           </button>
         </div>
       </div>
+
+      {/* PWA Install */}
+      {!isInstalled && installPrompt && (
+        <div className="card" style={{ marginBottom: 16, border: '1px solid var(--orange)', background: 'var(--orange-light)' }}>
+          <h3 style={{ fontSize: 16, marginBottom: 16, color: 'var(--orange)' }}>ติดตั้งแอปพลิเคชัน</h3>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ fontSize: 14, color: 'var(--text-primary)' }}>
+              ติดตั้ง Study OS ลงในเครื่องเพื่อเข้าถึงได้รวดเร็วขึ้น
+            </div>
+            <button className="btn-primary" onClick={installApp} style={{ gap: 8 }}>
+              <IconDownload size={16} /> ติดตั้ง
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Info */}
       <div className="card" style={{ marginBottom: 16 }}>

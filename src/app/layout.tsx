@@ -23,6 +23,9 @@ export default function RootLayout({
     <html lang="th" suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#E8651A" />
+        <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
       <body className={sarabun.variable}>
         {children}
