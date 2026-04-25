@@ -32,7 +32,7 @@ export function useNotes() {
         const data = d.data();
         return {
           id: d.id, title: data.title || '', body: data.body || '',
-          subject: data.subject || '', color: data.color || '#FFFFFF',
+          subject: data.subject || '', color: data.color || 'var(--note-white)',
           createdAt: data.createdAt?.toDate() || new Date(),
           updatedAt: data.updatedAt?.toDate() || new Date(),
         };
@@ -48,7 +48,7 @@ export function useNotes() {
       title: note.title || 'โน้ตใหม่',
       body: note.body || '',
       subject: note.subject || '',
-      color: note.color || '#FFFFFF',
+      color: note.color || 'var(--note-white)',
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     });

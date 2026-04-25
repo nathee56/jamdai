@@ -47,9 +47,11 @@ export default function AIPage() {
     return items.slice(0, 4);
   }, [pendingTodos, todayClasses, notes]);
 
+  const [showMobileHistory, setShowMobileHistory] = useState(false);
+
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [activeChat?.messages]);
+  }, [activeChat?.messages, sending]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -92,13 +94,21 @@ export default function AIPage() {
     }
 
     const selectedModel = model === 'auto' ? MODELS[recommendModel(msg || 'summarize')] : MODELS[model];
-    await sendMessage(chatId, finalContent, selectedModel, systemPrompt);
+    try {
+      await sendMessage(chatId, finalContent, selectedModel, systemPrompt);
+    } catch (err) {
+      console.error(err);
+      alert('AI ไม่ตอบสนอง โปรดตรวจสอบการเชื่อมต่ออินเทอร์เน็ตหรือ API Key ในระบบ');
+    }
   };
 
   const handleNewChat = async () => {
     const selectedModel = model === 'auto' ? MODELS['openthaigpt'] : MODELS[model];
     const id = await createChat(selectedModel);
-    if (id) setActiveChat({ id, title: 'แชทใหม่', messages: [], model: selectedModel, createdAt: new Date() });
+    if (id) {
+      setActiveChat({ id, title: 'แชทใหม่', messages: [], model: selectedModel, createdAt: new Date() });
+      setShowMobileHistory(false);
+    }
   };
 
   return (
@@ -143,33 +153,39 @@ export default function AIPage() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {/* Chat Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <div style={{ position: 'relative' }}>
-            <button className="btn-ghost" onClick={() => setShowModels(!showModels)} style={{ fontSize: 12, padding: '6px 12px' }}>
-              <IconCpu size={14} /> {model === 'auto' ? 'Auto (AI แนะนำ)' : MODEL_INFO[model].name}
-              <IconChevronDown size={14} style={{ transform: showModels ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn-icon mobile-only" onClick={() => setShowMobileHistory(true)} 
+              style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+              <IconMessageCircle size={20} />
             </button>
-            {showModels && (
-              <div className="card" style={{ position: 'absolute', top: '100%', left: 0, marginTop: 4, padding: 4, zIndex: 20, minWidth: 280 }}>
-                <button className={`nav-item ${model === 'auto' ? 'active' : ''}`}
-                  onClick={() => { setModel('auto'); setShowModels(false); }}
-                  style={{ width: '100%', margin: '2px 0', padding: '8px 12px' }}>
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--orange)' }}>✨ Auto (AI แนะนำ)</div>
-                    <div style={{ fontSize: 11, color: 'var(--text-hint)' }}>ให้ระบบเลือกโมเดลที่เหมาะกับคำถามให้อัตโนมัติ</div>
-                  </div>
-                </button>
-                {(Object.keys(MODELS) as ModelKey[]).map((key) => (
-                  <button key={key} className={`nav-item ${model === key ? 'active' : ''}`}
-                    onClick={() => { setModel(key); setShowModels(false); }}
+            <div style={{ position: 'relative' }}>
+              <button className="btn-ghost" onClick={() => setShowModels(!showModels)} style={{ fontSize: 12, padding: '6px 12px' }}>
+                <IconCpu size={14} /> {model === 'auto' ? 'Auto (AI แนะนำ)' : MODEL_INFO[model].name}
+                <IconChevronDown size={14} style={{ transform: showModels ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+              </button>
+              {showModels && (
+                <div className="card" style={{ position: 'absolute', top: '100%', left: 0, marginTop: 4, padding: 4, zIndex: 20, minWidth: 280 }}>
+                  <button className={`nav-item ${model === 'auto' ? 'active' : ''}`}
+                    onClick={() => { setModel('auto'); setShowModels(false); }}
                     style={{ width: '100%', margin: '2px 0', padding: '8px 12px' }}>
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 500 }}>{MODEL_INFO[key].name}</div>
-                      <div style={{ fontSize: 11, color: 'var(--text-hint)' }}>{MODEL_INFO[key].description}</div>
+                      <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--orange)' }}>✨ Auto (AI แนะนำ)</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-hint)' }}>ให้ระบบเลือกโมเดลที่เหมาะกับคำถามให้อัตโนมัติ</div>
                     </div>
                   </button>
-                ))}
-              </div>
-            )}
+                  {(Object.keys(MODELS) as ModelKey[]).map((key) => (
+                    <button key={key} className={`nav-item ${model === key ? 'active' : ''}`}
+                      onClick={() => { setModel(key); setShowModels(false); }}
+                      style={{ width: '100%', margin: '2px 0', padding: '8px 12px' }}>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 500 }}>{MODEL_INFO[key].name}</div>
+                        <div style={{ fontSize: 11, color: 'var(--text-hint)' }}>{MODEL_INFO[key].description}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {user && (
@@ -194,14 +210,20 @@ export default function AIPage() {
         </div>
 
         {/* Messages */}
-        <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: 16 }}>
+        <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 14, paddingBottom: 16 }}>
           {!activeChat || activeChat.messages.length === 0 ? (
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
-              <IconSparkle size={36} style={{ color: 'var(--orange)', opacity: 0.5 }} />
-              <h3 style={{ fontSize: 18, color: 'var(--text-secondary)' }}>Study AI พร้อมช่วยคุณ</h3>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', maxWidth: 500 }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, textAlign: 'center' }}>
+              <div style={{ 
+                width: 64, height: 64, borderRadius: 20, background: 'var(--orange-light)', 
+                display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8 
+              }}>
+                <IconSparkle size={32} style={{ color: 'var(--orange)' }} />
+              </div>
+              <h3 style={{ fontSize: 18, color: 'var(--text-primary)' }}>Study AI พร้อมช่วยคุณ</h3>
+              <p style={{ fontSize: 13, color: 'var(--text-secondary)', maxWidth: 300 }}>ถามเกี่ยวกับงานที่ค้างอยู่ หรือให้ช่วยสรุปเนื้อหาบทเรียนได้ทันที</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', maxWidth: 500, padding: '0 20px' }}>
                 {suggestions.map((s, i) => (
-                  <button key={i} className="chip" onClick={() => handleSend(s)} style={{ fontSize: 12 }}>{s}</button>
+                  <button key={i} className="chip" onClick={() => handleSend(s)} style={{ fontSize: 12, padding: '8px 16px' }}>{s}</button>
                 ))}
               </div>
             </div>
@@ -219,8 +241,9 @@ export default function AIPage() {
               }
 
               return (
-                <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
-                  <div className={msg.role === 'user' ? 'chat-bubble chat-bubble-user' : 'chat-bubble chat-bubble-ai'}>
+                <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start', padding: '0 4px' }}>
+                  <div className={msg.role === 'user' ? 'chat-bubble chat-bubble-user' : 'chat-bubble chat-bubble-ai'} 
+                    style={{ maxWidth: msg.role === 'user' ? '85%' : '95%', fontSize: 14 }}>
                     {msg.role === 'assistant' ? (
                       <div className="markdown-body">
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -230,9 +253,10 @@ export default function AIPage() {
                     ) : content}
                   </div>
                   {choices.length > 0 && (
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4, marginLeft: 8 }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8, marginLeft: msg.role === 'user' ? 0 : 8, justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
                       {choices.map((c, idx) => (
-                        <button key={idx} className="chip" onClick={() => handleSend(c)} style={{ fontSize: 11, padding: '4px 10px', background: 'var(--cream3)' }}>
+                        <button key={idx} className="chip" onClick={() => handleSend(c)} 
+                          style={{ fontSize: 11, padding: '6px 12px', background: 'var(--surface)', border: '1px solid var(--border)' }}>
                           {c}
                         </button>
                       ))}
@@ -243,7 +267,7 @@ export default function AIPage() {
             })
           )}
           {sending && (
-            <div className="chat-bubble chat-bubble-ai" style={{ width: 'fit-content' }}>
+            <div className="chat-bubble chat-bubble-ai" style={{ width: 'fit-content', marginLeft: 4 }}>
               <div className="typing-indicator">
                 <span className="typing-dot"></span>
                 <span className="typing-dot"></span>
@@ -275,7 +299,7 @@ export default function AIPage() {
             <button 
               className="btn-icon" 
               onClick={() => fileInputRef.current?.click()}
-              style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--cream3)' }}
+              style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--surface)', border: '1px solid var(--border)' }}
               title="แนบไฟล์ข้อความ"
             >
               <IconPaperclip size={20} />
@@ -293,9 +317,10 @@ export default function AIPage() {
                 height: 44, borderRadius: 12, 
                 paddingRight: 50, 
                 borderTopLeftRadius: fileContext ? 0 : 12,
-                borderTopRightRadius: fileContext ? 0 : 12
+                borderTopRightRadius: fileContext ? 0 : 12,
+                background: 'var(--surface)'
               }}
-              placeholder={fileContext ? "ถาม AI เกี่ยวกับไฟล์นี้..." : "ถามอะไร Study AI ดี..."}
+              placeholder={fileContext ? "ถาม AI เกี่ยวกับไฟล์นี้..." : "พิมพ์คำถามของคุณที่นี่..."}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
@@ -353,6 +378,41 @@ export default function AIPage() {
           ))}
         </div>
       </div>
+
+      {/* Mobile History Drawer */}
+      {showMobileHistory && (
+        <div className="modal-overlay open" onClick={() => setShowMobileHistory(false)} style={{ zIndex: 1000 }}>
+          <div className="modal" onClick={(e) => e.stopPropagation()} style={{ 
+            position: 'absolute', bottom: 0, left: 0, right: 0, 
+            maxWidth: 'none', borderRadius: '24px 24px 0 0', height: '70vh',
+            padding: 20, display: 'flex', flexDirection: 'column'
+          }}>
+            <div className="modal-header">
+              <h3>ประวัติการแชท</h3>
+              <button className="btn-icon" onClick={() => setShowMobileHistory(false)}><IconX size={20} /></button>
+            </div>
+            <button className="btn-primary" onClick={handleNewChat} style={{ marginBottom: 16, width: '100%' }}>
+              <IconPlus size={16} /> เริ่มแชทใหม่
+            </button>
+            <div style={{ flex: 1, overflowY: 'auto' }}>
+              {chats.length === 0 && <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-hint)' }}>ไม่มีประวัติการแชท</div>}
+              {chats.map((chat) => (
+                <button
+                  key={chat.id}
+                  className={`nav-item ${activeChat?.id === chat.id ? 'active' : ''}`}
+                  onClick={() => { setActiveChat(chat); setShowMobileHistory(false); }}
+                  style={{ width: '100%', padding: '12px', margin: '4px 0', textAlign: 'left', borderRadius: 12 }}>
+                  <IconMessageCircle size={16} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 500 }}>{chat.title}</div>
+                    <div style={{ fontSize: 11, opacity: 0.6 }}>{chat.createdAt.toLocaleDateString('th-TH')}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <style jsx>{`
         @media (max-width: 768px) {

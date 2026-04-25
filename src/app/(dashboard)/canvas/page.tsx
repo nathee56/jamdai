@@ -6,7 +6,10 @@ import { useNotes } from '@/lib/hooks/useNotes';
 import { callLLM } from '@/lib/thaillm';
 import { IconPlus, IconTrash, IconSparkle, IconFileText, IconX, IconShare2 } from '@/components/ui/Icons';
 
-const STICKY_COLORS = ['#FFF3C4', '#D5E5F5', '#D9F0DA', '#F5DBE5', '#FCE8D5', '#E5DDF5'];
+const STICKY_COLORS = [
+  'var(--note-yellow)', 'var(--note-blue)', 'var(--note-green)', 
+  'var(--note-pink)', 'var(--note-peach)', 'var(--note-lavender)'
+];
 
 export default function CanvasPage() {
   const { items, lines, selectedId, pan, zoom, isLoaded, setSelectedId, setPan, setZoom, addItem, updateItem, deleteItem, moveItem, toggleLine, clearCanvas } = useCanvas();
@@ -104,7 +107,7 @@ export default function CanvasPage() {
   const handleAddText = () => {
     const centerX = (-pan.x + (canvasRef.current?.clientWidth || 800) / 2) / zoom;
     const centerY = (-pan.y + (canvasRef.current?.clientHeight || 500) / 2) / zoom;
-    addItem('text', centerX - 150, centerY, 'ข้อความใหม่', '#FFFFFF');
+    addItem('text', centerX - 150, centerY, 'ข้อความใหม่', 'var(--note-white)');
   };
 
   const handleImportNote = (noteId: string) => {

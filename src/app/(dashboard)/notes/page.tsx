@@ -6,10 +6,10 @@ import { useRouter } from 'next/navigation';
 import { IconPlus, IconSearch, IconFileText } from '@/components/ui/Icons';
 
 const NOTE_COLORS = [
-  { name: 'ขาว', value: '#FFFFFF' }, { name: 'ครีม', value: '#FBF8F1' },
-  { name: 'พีช', value: '#FCE8D5' }, { name: 'ชมพู', value: '#F5DBE5' },
-  { name: 'ม่วง', value: '#E5DDF5' }, { name: 'ฟ้า', value: '#D5E5F5' },
-  { name: 'เขียว', value: '#D9F0DA' }, { name: 'เหลือง', value: '#FFF3C4' },
+  { name: 'ขาว', value: 'var(--note-white)' }, { name: 'ครีม', value: 'var(--note-cream)' },
+  { name: 'พีช', value: 'var(--note-peach)' }, { name: 'ชมพู', value: 'var(--note-pink)' },
+  { name: 'ม่วง', value: 'var(--note-lavender)' }, { name: 'ฟ้า', value: 'var(--note-blue)' },
+  { name: 'เขียว', value: 'var(--note-green)' }, { name: 'เหลือง', value: 'var(--note-yellow)' },
 ];
 
 export default function NotesPage() {
@@ -27,7 +27,7 @@ export default function NotesPage() {
   });
 
   const handleNew = async () => {
-    const id = await addNote({ title: 'โน้ตใหม่', body: '', subject: '', color: '#FFFFFF' });
+    const id = await addNote({ title: 'โน้ตใหม่', body: '', subject: '', color: 'var(--note-white)' });
     if (id) router.push(`/notes/${id}`);
   };
 

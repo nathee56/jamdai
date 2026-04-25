@@ -67,15 +67,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="app-layout" data-is-mobile={isMobile}>
-      {/* Force Mobile Styles Nuke Option */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        @media (max-width: 768px) {
-          .sidebar { display: none !important; }
-          .main-area { margin-left: 0 !important; width: 100% !important; flex: 1 !important; }
-          .app-layout { display: block !important; }
-        }
-      ` }} />
-
       {/* Mobile Warning Banner */}
       {isMobile && (
         <div style={{ 
