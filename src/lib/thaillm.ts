@@ -75,7 +75,18 @@ export async function callLLM(model: string, messages: { role: string; content: 
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ messages, model }),
   });
-  if (!res.ok) throw new Error('AI API failed');
+  
+  if (!res.ok) {
+    let detail = '';
+    try {
+      const errData = await res.json();
+      detail = errData.details || errData.error || '';
+    } catch {
+      detail = await res.text();
+    }
+    throw new Error(`AI API failed (${res.status}): ${detail}`);
+  }
+  
   const data = await res.json();
   return { choices: [{ message: { content: data.content } }] };
 }
