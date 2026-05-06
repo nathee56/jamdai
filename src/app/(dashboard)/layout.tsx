@@ -12,13 +12,8 @@ const pageTitles: Record<string, { title: string; subtitle?: string }> = {
   '/': { title: 'Dashboard', subtitle: 'ภาพรวมวันนี้' },
   '/todo': { title: 'To-Do List', subtitle: 'จัดการงานที่ต้องทำ' },
   '/schedule': { title: 'ตารางเรียน', subtitle: 'ตารางเรียนประจำสัปดาห์' },
-  '/auto-schedule': { title: 'Auto Schedule', subtitle: 'AI จัดตารางอัจฉริยะ' },
   '/notes': { title: 'Notes', subtitle: 'จดบันทึกของคุณ' },
   '/drive': { title: 'Google Drive', subtitle: 'เชื่อมต่อและให้ AI อ่านเอกสาร' },
-  '/knowledge-graph': { title: 'Knowledge Graph', subtitle: 'เครือข่ายความรู้ 3D' },
-  '/canvas': { title: 'Deep Work Canvas', subtitle: 'พื้นที่ทำงานแบบ Infinite Canvas' },
-  '/pomodoro': { title: 'Focus Timer', subtitle: 'เทคนิค Pomodoro เพื่อการเรียน' },
-  '/voice-tutor': { title: 'Voice Tutor', subtitle: 'ติวเตอร์ AI พูดคุยได้' },
   '/ai-tools': { title: 'AI Tools & Links', subtitle: 'เครื่องมือ AI และลิงก์ที่มีประโยชน์' },
   '/ai': { title: 'AI Assistant', subtitle: 'Study AI พร้อมช่วยเหลือคุณ' },
   '/settings': { title: 'ตั้งค่า', subtitle: 'ตั้งค่าบัญชีและแอปพลิเคชัน' },
@@ -51,7 +46,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         minHeight: '100vh', background: 'var(--bg)',
       }}>
         <div style={{ textAlign: 'center' }}>
-          <h2 style={{ fontFamily: 'Georgia, serif', fontSize: 22, color: 'var(--text-primary)', marginBottom: 8 }}>
+          <h2 style={{ fontWeight: 700, fontSize: 20, color: 'var(--text-primary)', marginBottom: 8 }}>
             Study<span style={{ color: 'var(--orange)' }}>OS</span>
           </h2>
           <p style={{ fontSize: 13, color: 'var(--text-hint)' }}>กำลังโหลด...</p>
@@ -92,18 +87,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }
       ` }} />
 
-      {/* Mobile Warning Banner */}
-      {isMobile && (
-        <div style={{ 
-          background: 'var(--orange-light)', color: 'var(--orange)', 
-          padding: '8px 16px', fontSize: 12, textAlign: 'center',
-          display: 'flex', justifyContent: 'center', alignItems: 'center', 
-          fontWeight: 600, borderBottom: '1px solid var(--orange)',
-          position: 'sticky', top: 0, zIndex: 100
-        }}>
-          ⚠️ ฟีเจอร์ในมือถืออาจไม่ครบถ้วน กรุณาเปิดบน Desktop PC เพื่อประสบการณ์ที่ดีที่สุด
-        </div>
-      )}
 
       <Sidebar />
       

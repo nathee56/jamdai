@@ -27,7 +27,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#E8651A" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
-      <body className={sarabun.variable}>
+      <body className={`${sarabun.variable}`}>
         {children}
       </body>
     </html>

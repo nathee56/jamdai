@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useTodos, Todo } from '@/lib/hooks/useTodos';
 import { useSchedule } from '@/lib/hooks/useSchedule';
 import { IconSearch, IconPlus, IconCheck, IconTrash, IconFilter, IconSort, IconSparkle, IconCheckSquare } from '@/components/ui/Icons';
+import { AnimatedCheckbox } from '@/components/ui/AnimatedComponents';
 
 export default function TodoPage() {
   const { todos, loading, addTodo, toggleTodo, deleteTodo } = useTodos();
@@ -16,8 +17,15 @@ export default function TodoPage() {
   const [newSubject, setNewSubject] = useState('');
   const [newPriority, setNewPriority] = useState<'normal' | 'urgent'>('normal');
   const [newDueDate, setNewDueDate] = useState('');
-
   const [newDifficulty, setNewDifficulty] = useState<number>(3);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth <= 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   const subjects = useMemo(() => {
     const s = new Set(schedule.map((c) => c.name));
@@ -58,11 +66,34 @@ export default function TodoPage() {
     setNewTitle(''); setNewSubject(''); setNewPriority('normal'); setNewDueDate(''); setNewDifficulty(3);
   };
 
-  const renderTodoItem = (todo: Todo) => (
+  // Mobile card-style todo item
+  const renderMobileTodoItem = (todo: Todo) => (
+    <div key={todo.id} className="mobile-todo-card animate-in" style={{ opacity: todo.done ? 0.6 : 1 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+        <AnimatedCheckbox checked={todo.done} onChange={() => toggleTodo(todo.id, !todo.done)} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 8 }} className={todo.done ? 'line-through' : ''}>{todo.title}</div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {todo.subject && <span className="pill pill-neutral">{todo.subject}</span>}
+            {todo.priority === 'urgent' && <span className="pill pill-danger">ด่วน</span>}
+            {todo.dueDate && (
+              <span className="pill pill-warning">
+                {todo.dueDate.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}
+              </span>
+            )}
+          </div>
+        </div>
+        <button className="btn-icon" onClick={() => deleteTodo(todo.id)} style={{ flexShrink: 0, width: 44, height: 44 }}>
+          <IconTrash size={16} />
+        </button>
+      </div>
+    </div>
+  );
+
+  // Desktop list-style todo item
+  const renderDesktopTodoItem = (todo: Todo) => (
     <div key={todo.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '0.5px solid var(--border)' }} className="animate-in">
-      <button className={`checkbox ${todo.done ? 'checked' : ''}`} onClick={() => toggleTodo(todo.id, !todo.done)}>
-        {todo.done && <IconCheck size={14} />}
-      </button>
+      <AnimatedCheckbox checked={todo.done} onChange={() => toggleTodo(todo.id, !todo.done)} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 14, fontWeight: 500 }} className={todo.done ? 'line-through' : ''}>{todo.title}</div>
         <div style={{ display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
@@ -84,7 +115,16 @@ export default function TodoPage() {
     </div>
   );
 
+  const renderTodoItem = (todo: Todo) => isMobile ? renderMobileTodoItem(todo) : renderDesktopTodoItem(todo);
+
   if (loading) return <div className="skeleton" style={{ height: 400 }} />;
+
+  const filterChips = [
+    { key: 'all' as const, label: 'ทั้งหมด' },
+    { key: 'pending' as const, label: 'ยังไม่เสร็จ' },
+    { key: 'urgent' as const, label: 'ด่วน' },
+    { key: 'done' as const, label: 'เสร็จแล้ว' },
+  ];
 
   return (
     <div className="animate-in" style={{ display: 'flex', gap: 24 }}>
@@ -131,51 +171,88 @@ export default function TodoPage() {
           </p>
           <button className="btn-primary" style={{ width: '100%', padding: '8px', fontSize: 12 }}
             onClick={() => window.location.href = `/ai?q=${encodeURIComponent('ช่วยวางแผนการทำงานและอ่านหนังสือจากรายการ To-Do ของฉันให้หน่อย ควรเริ่มจากอันไหนก่อนดี?')}`}>
-            วางแผนให้ฉันที ✨
+            วางแผนให้ฉันที
           </button>
         </div>
       </div>
 
       {/* Main List */}
       <div style={{ flex: 1, minWidth: 0 }}>
+        {/* Mobile Filter Chips */}
+        {isMobile && (
+          <div className="mobile-filter-chips" style={{ marginBottom: 16 }}>
+            {filterChips.map((chip) => (
+              <button
+                key={chip.key}
+                className={`chip ${filter === chip.key ? 'chip-active' : ''}`}
+                onClick={() => setFilter(chip.key)}
+                style={{
+                  padding: '8px 16px',
+                  fontSize: 13,
+                  flexShrink: 0,
+                  background: filter === chip.key ? 'var(--orange)' : 'var(--surface)',
+                  color: filter === chip.key ? '#fff' : 'var(--text-secondary)',
+                  border: filter === chip.key ? '1px solid var(--orange)' : '0.5px solid var(--border-strong)',
+                }}
+              >
+                {chip.label}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Search + Sort */}
         <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
           <div style={{ flex: 1, minWidth: 200, position: 'relative' }}>
             <IconSearch size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-hint)' }} />
             <input className="input" placeholder="ค้นหางาน..." value={search} onChange={(e) => setSearch(e.target.value)} style={{ paddingLeft: 36 }} />
           </div>
-          <select className="input" style={{ width: 'auto', minWidth: 120, cursor: 'pointer' }} value={sortBy} onChange={(e) => setSortBy(e.target.value as typeof sortBy)}>
-            <option value="dueDate">วันส่ง</option>
-            <option value="priority">ความสำคัญ</option>
-            <option value="subject">วิชา</option>
-          </select>
+          {!isMobile && (
+            <select className="input" style={{ width: 'auto', minWidth: 120, cursor: 'pointer' }} value={sortBy} onChange={(e) => setSortBy(e.target.value as typeof sortBy)}>
+              <option value="dueDate">วันส่ง</option>
+              <option value="priority">ความสำคัญ</option>
+              <option value="subject">วิชา</option>
+            </select>
+          )}
         </div>
 
         {/* Urgent Section */}
         {urgentTodos.length > 0 && (
           <div style={{ marginBottom: 24 }}>
-            <h4 style={{ fontSize: 13, color: 'var(--danger)', marginBottom: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <h4 className="mobile-section-label" style={{ fontSize: isMobile ? 11 : 13, color: 'var(--danger)', marginBottom: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, textTransform: isMobile ? 'uppercase' : 'none', letterSpacing: isMobile ? '0.5px' : 'normal' }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--danger)' }} /> ด่วน
             </h4>
-            <div className="card" style={{ padding: '0 16px' }}>{urgentTodos.map(renderTodoItem)}</div>
+            {isMobile ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>{urgentTodos.map(renderTodoItem)}</div>
+            ) : (
+              <div className="card" style={{ padding: '0 16px' }}>{urgentTodos.map(renderTodoItem)}</div>
+            )}
           </div>
         )}
 
         {/* Pending Section */}
         {pendingTodos.length > 0 && (
           <div style={{ marginBottom: 24 }}>
-            <h4 style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <h4 className="mobile-section-label" style={{ fontSize: isMobile ? 11 : 13, color: 'var(--text-secondary)', marginBottom: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6, textTransform: isMobile ? 'uppercase' : 'none', letterSpacing: isMobile ? '0.5px' : 'normal' }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--orange)' }} /> งานค้างอยู่
             </h4>
-            <div className="card" style={{ padding: '0 16px' }}>{pendingTodos.map(renderTodoItem)}</div>
+            {isMobile ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>{pendingTodos.map(renderTodoItem)}</div>
+            ) : (
+              <div className="card" style={{ padding: '0 16px' }}>{pendingTodos.map(renderTodoItem)}</div>
+            )}
           </div>
         )}
 
         {/* Done Section */}
         {doneTodos.length > 0 && (
           <div style={{ marginBottom: 24 }}>
-            <h4 style={{ fontSize: 13, color: 'var(--text-hint)', marginBottom: 12, fontWeight: 600 }}>เสร็จแล้ว</h4>
-            <div className="card" style={{ padding: '0 16px', opacity: 0.7 }}>{doneTodos.map(renderTodoItem)}</div>
+            <h4 className="mobile-section-label" style={{ fontSize: isMobile ? 11 : 13, color: 'var(--text-hint)', marginBottom: 12, fontWeight: 600, textTransform: isMobile ? 'uppercase' : 'none', letterSpacing: isMobile ? '0.5px' : 'normal' }}>เสร็จแล้ว</h4>
+            {isMobile ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>{doneTodos.map(renderTodoItem)}</div>
+            ) : (
+              <div className="card" style={{ padding: '0 16px', opacity: 0.7 }}>{doneTodos.map(renderTodoItem)}</div>
+            )}
           </div>
         )}
 
@@ -188,12 +265,12 @@ export default function TodoPage() {
 
         {/* Add Row */}
         <div className="card" style={{ marginTop: 24, padding: 20, background: 'var(--cream)' }}>
-          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 12 }}>เพิ่มงานใหม่</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 10 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>เพิ่มงานใหม่</div>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: 10, marginBottom: 10 }}>
             <input className="input" placeholder="หัวข้อวิชา/งาน..." value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); }}
-              style={{ gridColumn: 'span 3' }} />
+              style={isMobile ? {} : { gridColumn: 'span 3' }} />
             <select className="input" value={newSubject} onChange={(e) => setNewSubject(e.target.value)}>
               <option value="">เลือกวิชา</option>
               {subjects.map((s) => <option key={s} value={s}>{s}</option>)}
@@ -202,16 +279,18 @@ export default function TodoPage() {
               <option value="normal">ความสำคัญปกติ</option>
               <option value="urgent">ความสำคัญสูง (ด่วน)</option>
             </select>
-            <select className="input" value={newDifficulty} onChange={(e) => setNewDifficulty(Number(e.target.value))}>
-              <option value={1}>ระดับความยาก: 1 (ง่ายมาก)</option>
-              <option value={2}>ระดับความยาก: 2 (ง่าย)</option>
-              <option value={3}>ระดับความยาก: 3 (ปกติ)</option>
-              <option value={4}>ระดับความยาก: 4 (ยาก)</option>
-              <option value={5}>ระดับความยาก: 5 (ยากมาก)</option>
-            </select>
+            {!isMobile && (
+              <select className="input" value={newDifficulty} onChange={(e) => setNewDifficulty(Number(e.target.value))}>
+                <option value={1}>ระดับความยาก: 1 (ง่ายมาก)</option>
+                <option value={2}>ระดับความยาก: 2 (ง่าย)</option>
+                <option value={3}>ระดับความยาก: 3 (ปกติ)</option>
+                <option value={4}>ระดับความยาก: 4 (ยาก)</option>
+                <option value={5}>ระดับความยาก: 5 (ยากมาก)</option>
+              </select>
+            )}
             <input type="date" className="input" value={newDueDate} onChange={(e) => setNewDueDate(e.target.value)} />
-            <div style={{ gridColumn: 'span 2' }}></div>
-            <button className="btn-primary" onClick={handleAdd} style={{ width: '100%' }}>
+            {!isMobile && <div style={{ gridColumn: 'span 2' }}></div>}
+            <button className="btn-primary" onClick={handleAdd} style={{ width: '100%', minHeight: 44 }}>
               <IconPlus size={16} /> เพิ่มงาน
             </button>
           </div>

@@ -108,7 +108,7 @@ export default function NoteDetailPage({ params }: { params: Promise<{ id: strin
         </div>
         <input value={title} onChange={(e) => handleTitleChange(e.target.value)}
           placeholder="ชื่อโน้ต"
-          style={{ fontSize: 24, fontFamily: 'Georgia, serif', fontWeight: 700, border: 'none', background: 'none', outline: 'none', color: 'var(--text-primary)', marginBottom: 12, width: '100%' }} />
+          style={{ fontSize: 24, fontWeight: 700, border: 'none', background: 'none', outline: 'none', color: 'var(--text-primary)', marginBottom: 12, width: '100%' }} />
         <div className="card" style={{ flex: 1, padding: 0, overflow: 'auto' }}>
           <NoteEditor content={body} onChange={handleBodyChange} />
         </div>

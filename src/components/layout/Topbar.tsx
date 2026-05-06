@@ -5,10 +5,9 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useTheme } from '@/lib/hooks/useTheme';
 import { useAuth } from '@/lib/hooks/useAuth';
-import { useTodos } from '@/lib/hooks/useTodos';
 import { 
-  IconSun, IconMoon, IconPlus, IconCheckSquare, IconMenu, IconX, 
-  IconCalendar, IconFileText, IconCpu, IconBrain, IconTarget, IconLayout, IconSettings
+  IconSun, IconMoon, IconPlus, IconMenu, IconX, IconSearch,
+  IconCalendar, IconFileText, IconCpu, IconSettings
 } from '@/components/ui/Icons';
 
 interface TopbarProps {
@@ -19,11 +18,11 @@ interface TopbarProps {
 export default function Topbar({ title, subtitle }: TopbarProps) {
   const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
-  const { todos } = useTodos();
   const router = useRouter();
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= 768);
@@ -32,67 +31,92 @@ export default function Topbar({ title, subtitle }: TopbarProps) {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const totalTodos = todos.length;
-  const doneTodos = todos.filter(t => t.done).length;
-  const progress = totalTodos === 0 ? 0 : Math.round((doneTodos / totalTodos) * 100);
-
   const menuItems = [
     { href: '/schedule', label: 'ตารางเรียน', icon: IconCalendar },
-    { href: '/auto-schedule', label: 'Auto Schedule', icon: IconTarget },
-    { href: '/notes', label: 'โน๊ตทั้งหมด', icon: IconFileText },
-    { href: '/knowledge-graph', label: 'Knowledge Graph', icon: IconBrain },
-    { href: '/canvas', label: 'Deep Work Canvas', icon: IconLayout },
+    { href: '/notes', label: 'โน้ตทั้งหมด', icon: IconFileText },
     { href: '/ai-tools', label: 'AI Tools', icon: IconCpu },
     { href: '/settings', label: 'ตั้งค่า', icon: IconSettings },
   ];
 
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      router.push(`/ai?q=${encodeURIComponent(searchQuery)}`);
+      setSearchQuery('');
+    }
+  };
+
   return (
     <>
-    <header className="topbar">
+    <header className="topbar" style={isMobile ? { height: 56, padding: '0 16px' } : undefined}>
+      {/* Left section */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         {isMobile && (
-          <button className="btn-icon" onClick={() => setIsMenuOpen(true)}>
-            <IconMenu size={24} />
+          <button className="btn-icon" onClick={() => setIsMenuOpen(true)} style={{ width: 44, height: 44 }}>
+            <IconMenu size={22} />
           </button>
         )}
-        <div>
-          <h1 style={{ fontSize: 20, fontFamily: 'Georgia, serif' }}>{title}</h1>
-        {subtitle && (
-          <p style={{ fontSize: 12, color: 'var(--text-hint)', marginTop: 1 }}>{subtitle}</p>
-        )}
-        </div>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        
-        {/* Daily Progress */}
-        <div className="desktop-only" style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--surface)', padding: '6px 12px', borderRadius: 20, border: '1px solid var(--border)' }}>
-          <IconCheckSquare size={14} style={{ color: progress === 100 ? 'var(--success)' : 'var(--text-hint)' }} />
-          <div style={{ width: 60, height: 4, background: 'var(--cream3)', borderRadius: 2, overflow: 'hidden' }}>
-            <div style={{ width: `${progress}%`, height: '100%', background: progress === 100 ? 'var(--success)' : 'var(--orange)', transition: 'width 0.3s ease' }} />
+        {!isMobile && (
+          <div>
+            <h1 style={{ fontSize: 16, fontWeight: 500 }}>{title}</h1>
+            {subtitle && (
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2, fontWeight: 400 }}>{subtitle}</p>
+            )}
           </div>
-          <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)' }}>{progress}%</span>
-        </div>
+        )}
+      </div>
 
-        {/* Quick Add Button */}
-        <button className="btn-primary desktop-only" onClick={() => router.push('/notes?new=1')} style={{ padding: '6px 12px', fontSize: 12, borderRadius: 20, gap: 4 }}>
-          <IconPlus size={14} /> โน้ตด่วน
-        </button>
+      {/* Center — mobile only */}
+      {isMobile && (
+        <h1 style={{ 
+          fontSize: 16, fontWeight: 600,
+          position: 'absolute', left: '50%', transform: 'translateX(-50%)',
+          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          maxWidth: '50%'
+        }}>
+          {title}
+        </h1>
+      )}
 
-        <div style={{ width: 1, height: 20, background: 'var(--border)' }} className="desktop-only" />
+      {/* Right section */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        {/* Search — desktop/tablet only */}
+        {!isMobile && (
+          <div style={{ position: 'relative', width: 220 }}>
+            <IconSearch size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+            <input
+              className="input"
+              placeholder="ค้นหา..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(); }}
+              style={{ paddingLeft: 36, height: 40, fontSize: 14 }}
+            />
+          </div>
+        )}
 
-        <button className="btn-icon" onClick={toggleTheme} title="สลับธีม">
+        {/* Dark mode toggle */}
+        <button className="btn-icon" onClick={toggleTheme} title="สลับธีม" style={{ width: 36, height: 36 }}>
           {theme === 'light' ? <IconMoon size={18} /> : <IconSun size={18} />}
         </button>
         
+        {/* Quick add — desktop/tablet only */}
+        {!isMobile && (
+          <button className="btn-primary" onClick={() => router.push('/notes?new=1')} style={{ padding: '6px 14px', fontSize: 13, borderRadius: 8, gap: 4, height: 36 }}>
+            <IconPlus size={15} /> สร้างโน้ต
+          </button>
+        )}
+
+        {/* Avatar */}
         {user && (
           <div style={{
-            width: 34, height: 34, borderRadius: '50%', overflow: 'hidden',
+            width: 32, height: 32, borderRadius: '50%', overflow: 'hidden',
             background: 'var(--cream3)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0, border: '0.5px solid var(--border-strong)',
           }}>
             {user.photoURL ? (
               <img src={user.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
-              <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>
+              <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)' }}>
                 {user.displayName?.charAt(0) || 'U'}
               </span>
             )}
@@ -101,27 +125,24 @@ export default function Topbar({ title, subtitle }: TopbarProps) {
       </div>
     </header>
 
-    {/* Mobile Hamburger Menu Overlay */}
+    {/* Mobile Drawer */}
     {isMenuOpen && (
       <div className="mobile-only" style={{ position: 'fixed', inset: 0, zIndex: 9999 }}>
         <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }} onClick={() => setIsMenuOpen(false)} />
         <div style={{ 
           position: 'absolute', top: 0, bottom: 0, left: 0, width: '280px', 
-          background: 'var(--bg)', borderRight: '1px solid var(--border)',
+          background: 'var(--sidebar-bg)', borderRight: '0.5px solid var(--border-strong)',
           display: 'flex', flexDirection: 'column', animation: 'slideRight 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
         }}>
-          <div style={{ padding: '24px 20px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <h2 style={{ fontFamily: 'Georgia, serif', fontSize: 20, color: 'var(--text-primary)' }}>
-                Study<span style={{ color: 'var(--orange)' }}>OS</span>
-              </h2>
-            </div>
-            <button className="btn-icon" onClick={() => setIsMenuOpen(false)}>
+          <div style={{ padding: '24px 16px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2 style={{ fontSize: 20, fontWeight: 600, color: 'var(--text-primary)' }}>
+              Study<span style={{ color: 'var(--accent)' }}>OS</span>
+            </h2>
+            <button className="btn-icon" onClick={() => setIsMenuOpen(false)} style={{ width: 44, height: 44 }}>
               <IconX size={20} />
             </button>
           </div>
-          
-          <nav style={{ flex: 1, overflowY: 'auto', padding: '0 12px' }}>
+          <nav style={{ flex: 1, overflowY: 'auto', padding: '0 8px' }}>
             {menuItems.map(item => {
               const active = pathname.startsWith(item.href);
               return (
@@ -129,10 +150,9 @@ export default function Topbar({ title, subtitle }: TopbarProps) {
                   key={item.href} href={item.href} 
                   onClick={() => setIsMenuOpen(false)}
                   className={`nav-item ${active ? 'active' : ''}`}
-                  style={{ marginBottom: 4, padding: '12px 16px', borderRadius: 12 }}
                 >
-                  <item.icon size={20} />
-                  <span style={{ fontSize: 15 }}>{item.label}</span>
+                  <item.icon size={18} />
+                  <span style={{ fontSize: 14 }}>{item.label}</span>
                 </Link>
               );
             })}

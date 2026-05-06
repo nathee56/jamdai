@@ -25,7 +25,7 @@ export default function LoginPage() {
         maxWidth: 420, width: '100%',
       }}>
         {/* Logo */}
-        <h1 style={{ fontFamily: 'Georgia, serif', fontSize: 32, marginBottom: 4 }}>
+        <h1 style={{ fontWeight: 700, fontSize: 32, marginBottom: 8 }}>
           Study<span style={{ color: 'var(--orange)' }}>OS</span>
         </h1>
         <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 8 }}>

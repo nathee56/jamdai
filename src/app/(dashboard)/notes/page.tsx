@@ -75,7 +75,7 @@ export default function NotesPage() {
               style={{ cursor: 'pointer', background: note.color || 'var(--surface)', padding: 16, transition: 'transform 0.15s' }}
               onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}>
-              <h4 style={{ fontSize: 15, fontFamily: 'Georgia, serif', marginBottom: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <h4 style={{ fontSize: 16, fontWeight: 700, marginBottom: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {note.title}
               </h4>
               <p style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: 10, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>

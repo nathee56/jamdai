@@ -169,7 +169,7 @@ export default function AIPage() {
                     onClick={() => { setModel('auto'); setShowModels(false); }}
                     style={{ width: '100%', margin: '2px 0', padding: '8px 12px' }}>
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--orange)' }}>✨ Auto (AI แนะนำ)</div>
+                      <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--orange)' }}>Auto (AI แนะนำ)</div>
                       <div style={{ fontSize: 11, color: 'var(--text-hint)' }}>ให้ระบบเลือกโมเดลที่เหมาะกับคำถามให้อัตโนมัติ</div>
                     </div>
                   </button>
@@ -219,8 +219,8 @@ export default function AIPage() {
               }}>
                 <IconSparkle size={32} style={{ color: 'var(--orange)' }} />
               </div>
-              <h3 style={{ fontSize: 18, color: 'var(--text-primary)' }}>Study AI พร้อมช่วยคุณ</h3>
-              <p style={{ fontSize: 13, color: 'var(--text-secondary)', maxWidth: 300 }}>ถามเกี่ยวกับงานที่ค้างอยู่ หรือให้ช่วยสรุปเนื้อหาบทเรียนได้ทันที</p>
+              <h3 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>Study AI พร้อมช่วยคุณ</h3>
+              <p style={{ fontSize: 14, color: 'var(--text-secondary)', maxWidth: 300 }}>ถามเกี่ยวกับงานที่ค้างอยู่ หรือให้ช่วยสรุปเนื้อหาบทเรียนได้ทันที</p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', maxWidth: 500, padding: '0 20px' }}>
                 {suggestions.map((s, i) => (
                   <button key={i} className="chip" onClick={() => handleSend(s)} style={{ fontSize: 12, padding: '8px 16px' }}>{s}</button>
