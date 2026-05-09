@@ -49,50 +49,60 @@ export default function DashboardPage() {
 
   const gridCols = isMobile ? '1fr' : isTablet ? '1fr 1fr' : '1fr 1fr 1fr';
 
+  const statItems = [
+    { icon: IconCheckSquare, value: pendingTodos.length, label: 'งานค้าง', color: 'var(--accent)' },
+    { icon: IconCalendar, value: todayClasses.length, label: 'คาบวันนี้', color: 'var(--violet)' },
+    { icon: IconFileText, value: notes.length, label: 'โน้ตทั้งหมด', color: 'var(--teal)' },
+    { isProgress: true, value: `${progressPct}%`, label: 'ความคืบหน้า', color: 'var(--sky)' },
+  ];
+
   return (
     <div className="animate-in">
-      {/* AI Summary Banner — full width, left=content, right=stats */}
-      <div className="card" style={{ 
+      {/* AI Summary Banner — vibrant gradient */}
+      <div className="card ai-banner" style={{ 
         marginBottom: isMobile ? 16 : 18, 
-        padding: isMobile ? 16 : 20,
+        padding: isMobile ? 18 : 24,
         display: isMobile ? 'block' : 'flex',
         gap: 0,
+        position: 'relative',
+        zIndex: 1,
       }}>
         {/* Left: AI content */}
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ flex: 1, minWidth: 0, position: 'relative', zIndex: 2 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: isMobile ? 14 : 16 }}>
             <div style={{ 
-              width: 32, height: 32, borderRadius: 10, background: 'var(--orange-light)', 
-              display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--orange)',
-              flexShrink: 0,
+              width: 36, height: 36, borderRadius: 12, 
+              background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(8px)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
+              flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
             }}>
-              <IconSparkle size={18} />
+              <IconSparkle size={20} />
             </div>
             <div style={{ flex: 1 }}>
-              <h3 style={{ fontSize: 15, marginBottom: 4, fontWeight: 500 }}>สรุปภาพรวมวันนี้</h3>
-              <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.7 }}>
+              <h3 style={{ fontSize: 16, marginBottom: 4, fontWeight: 600, color: '#fff' }}>✨ สรุปภาพรวมวันนี้</h3>
+              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)', lineHeight: 1.7 }}>
                 {pendingTodos.length > 0 ? (
                   <span>
-                    คุณมีงานค้าง <strong style={{ color: 'var(--text-primary)' }}>{pendingTodos.length} รายการ</strong>
+                    คุณมีงานค้าง <strong style={{ color: '#fff' }}>{pendingTodos.length} รายการ</strong>
                     {todayClasses.length > 0 && ` และคาบเรียน ${todayClasses.length} คาบวันนี้`}
                   </span>
                 ) : (
-                  <span>ยอดเยี่ยม! วันนี้ไม่มีงานค้าง พร้อมลุยวันใหม่</span>
+                  <span>🎉 ยอดเยี่ยม! วันนี้ไม่มีงานค้าง พร้อมลุยวันใหม่</span>
                 )}
               </div>
             </div>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <input className="input" placeholder="ถาม AI เกี่ยวกับงานของคุณ..." value={aiQuery} onChange={(e) => setAiQuery(e.target.value)} style={{ flex: 1, height: 36, fontSize: 13 }} />
+            <input className="input" placeholder="ถาม AI เกี่ยวกับงานของคุณ..." value={aiQuery} onChange={(e) => setAiQuery(e.target.value)} style={{ flex: 1, height: 38, fontSize: 13 }} />
             <Link href={aiQuery ? `/ai?q=${encodeURIComponent(aiQuery)}` : '/ai'}>
-              <button className="btn-primary" style={{ height: 36, padding: '0 14px' }}><IconSend size={15} /></button>
+              <button className="btn-primary" style={{ height: 38, padding: '0 16px', background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(8px)', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}><IconSend size={15} /></button>
             </Link>
           </div>
         </div>
 
         {/* Right: Inline stats — desktop/tablet only */}
         {!isMobile && (
-          <div style={{ display: 'flex', borderLeft: '0.5px solid var(--border-strong)', marginLeft: 20, paddingLeft: 20, gap: 0, flexShrink: 0 }}>
+          <div style={{ display: 'flex', borderLeft: '1px solid rgba(255,255,255,0.2)', marginLeft: 24, paddingLeft: 24, gap: 0, flexShrink: 0, position: 'relative', zIndex: 2 }}>
             {[
               { icon: IconCheckSquare, value: pendingTodos.length, label: 'งานค้าง' },
               { icon: IconCalendar, value: todayClasses.length, label: 'คาบวันนี้' },
@@ -102,38 +112,33 @@ export default function DashboardPage() {
                 label: 'ความคืบหน้า' 
               },
             ].map((stat, i) => (
-              <div key={i} style={{ textAlign: 'center', padding: '0 16px', borderLeft: i > 0 ? '0.5px solid var(--border)' : 'none', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div key={i} style={{ textAlign: 'center', padding: '0 18px', borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.15)' : 'none', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 {stat.isProgress ? (
                   <div style={{ marginBottom: 4 }}>
                     <AnimatedProgressCircle progress={progressPct} size={20} strokeWidth={2.5} />
                   </div>
                 ) : stat.icon ? (
-                  <stat.icon size={16} style={{ color: 'var(--orange)', marginBottom: 4 }} />
+                  <stat.icon size={16} style={{ color: 'rgba(255,255,255,0.85)', marginBottom: 4 }} />
                 ) : null}
-                <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>{stat.value}</div>
-                <div style={{ fontSize: 11, color: 'var(--text-hint)', whiteSpace: 'nowrap' }}>{stat.label}</div>
+                <div style={{ fontSize: 26, fontWeight: 700, color: '#fff' }}>{stat.value}</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.7)', whiteSpace: 'nowrap' }}>{stat.label}</div>
               </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* Mobile stats grid */}
+      {/* Mobile stats grid — colorful stat cards */}
       {isMobile && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, marginBottom: 16 }}>
-          {[
-            { icon: IconCheckSquare, value: pendingTodos.length, label: 'งานค้าง' },
-            { icon: IconCalendar, value: todayClasses.length, label: 'คาบวันนี้' },
-            { icon: IconFileText, value: notes.length, label: 'โน้ตทั้งหมด' },
-            { isProgress: true, value: `${progressPct}%`, label: 'ความคืบหน้า' },
-          ].map((stat, i) => (
-            <div key={i} className="card mobile-card" style={{ textAlign: 'center', padding: 14, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          {statItems.map((stat, i) => (
+            <div key={i} className="card stat-card mobile-card" style={{ textAlign: 'center', padding: 14, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               {stat.isProgress ? (
                 <div style={{ marginBottom: 4 }}>
                   <AnimatedProgressCircle progress={progressPct} size={24} strokeWidth={3} />
                 </div>
               ) : stat.icon ? (
-                <stat.icon size={18} style={{ color: 'var(--orange)', marginBottom: 4 }} />
+                <stat.icon size={18} style={{ color: stat.color, marginBottom: 4 }} />
               ) : null}
               <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>{stat.value}</div>
               <div style={{ fontSize: 11, color: 'var(--text-hint)' }}>{stat.label}</div>
@@ -142,21 +147,26 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Content Grid — 3-col desktop, 2-col tablet, 1-col mobile */}
+      {/* Content Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: 18 }}>
         {/* Col 1: Today's Todos */}
         <div className="card mobile-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-            <h3 style={{ fontSize: 15, fontWeight: 500 }}>To-Do วันนี้</h3>
-            <Link href="/todo" style={{ fontSize: 12, color: 'var(--orange)', textDecoration: 'none' }}>ดูทั้งหมด</Link>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--accent-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <IconCheckSquare size={14} style={{ color: 'var(--accent)' }} />
+              </div>
+              <h3 style={{ fontSize: 15, fontWeight: 600 }}>To-Do วันนี้</h3>
+            </div>
+            <Link href="/todo" style={{ fontSize: 12, color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }}>ดูทั้งหมด →</Link>
           </div>
           {todayTodos.length === 0 ? (
-            <p style={{ fontSize: 13, color: 'var(--text-hint)', textAlign: 'center', padding: 20 }}>ไม่มีงานค้าง</p>
+            <p style={{ fontSize: 13, color: 'var(--text-hint)', textAlign: 'center', padding: 20 }}>ไม่มีงานค้าง 🎉</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
               {todayTodos.map((todo) => (
                 <div key={todo.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '0.5px solid var(--border)' }}>
-                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: todo.priority === 'urgent' ? 'var(--danger)' : 'var(--orange)', flexShrink: 0 }} />
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: todo.priority === 'urgent' ? 'var(--danger)' : 'var(--accent)', flexShrink: 0, boxShadow: `0 0 6px ${todo.priority === 'urgent' ? 'rgba(244,63,94,0.3)' : 'rgba(255,107,26,0.3)'}` }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{todo.title}</div>
                     {todo.subject && <span className="pill pill-neutral" style={{ marginTop: 3, fontSize: 9 }}>{todo.subject}</span>}
@@ -175,21 +185,26 @@ export default function DashboardPage() {
         {/* Col 2: Today's Schedule */}
         <div className="card mobile-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-            <h3 style={{ fontSize: 15, fontWeight: 500 }}>คาบเรียนวันนี้</h3>
-            <Link href="/schedule" style={{ fontSize: 12, color: 'var(--orange)', textDecoration: 'none' }}>ดูตาราง</Link>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--violet-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <IconCalendar size={14} style={{ color: 'var(--violet)' }} />
+              </div>
+              <h3 style={{ fontSize: 15, fontWeight: 600 }}>คาบเรียนวันนี้</h3>
+            </div>
+            <Link href="/schedule" style={{ fontSize: 12, color: 'var(--violet)', textDecoration: 'none', fontWeight: 500 }}>ดูตาราง →</Link>
           </div>
           {displayClasses.length === 0 ? (
-            <p style={{ fontSize: 13, color: 'var(--text-hint)', textAlign: 'center', padding: 20 }}>วันนี้ไม่มีคาบเรียน</p>
+            <p style={{ fontSize: 13, color: 'var(--text-hint)', textAlign: 'center', padding: 20 }}>วันนี้ไม่มีคาบเรียน 📚</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {displayClasses.map((cls) => (
-                <div key={cls.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 10, background: 'var(--cream)', borderRadius: 8 }}>
-                  <IconClock size={15} style={{ color: 'var(--text-hint)', flexShrink: 0 }} />
+                <div key={cls.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 10, background: 'var(--violet-soft)', borderRadius: 10, border: '1px solid var(--border)' }}>
+                  <IconClock size={15} style={{ color: 'var(--violet)', flexShrink: 0 }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 500 }}>{cls.name}</div>
                     <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{cls.room} - {cls.teacher}</div>
                   </div>
-                  <span className="pill pill-orange" style={{ fontSize: 10 }}>{cls.startTime}-{cls.endTime}</span>
+                  <span className="pill" style={{ fontSize: 10, background: 'var(--violet-soft)', color: 'var(--violet)', border: '1px solid var(--violet)', borderColor: 'rgba(139,92,246,0.2)' }}>{cls.startTime}-{cls.endTime}</span>
                 </div>
               ))}
             </div>
@@ -201,8 +216,13 @@ export default function DashboardPage() {
           {/* Recent Notes */}
           <div className="card mobile-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-              <h3 style={{ fontSize: 15, fontWeight: 500 }}>โน้ตล่าสุด</h3>
-              <Link href="/notes" style={{ fontSize: 12, color: 'var(--orange)', textDecoration: 'none' }}>ดูทั้งหมด</Link>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--teal-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <IconFileText size={14} style={{ color: 'var(--teal)' }} />
+                </div>
+                <h3 style={{ fontSize: 15, fontWeight: 600 }}>โน้ตล่าสุด</h3>
+              </div>
+              <Link href="/notes" style={{ fontSize: 12, color: 'var(--teal)', textDecoration: 'none', fontWeight: 500 }}>ดูทั้งหมด →</Link>
             </div>
             {notes.slice(0, 3).map((note) => (
               <Link key={note.id} href={`/notes/${note.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -220,8 +240,10 @@ export default function DashboardPage() {
           {/* Google Drive */}
           <div className="card mobile-card">
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-              <IconCloud size={15} style={{ color: '#4285F4' }} />
-              <h3 style={{ fontSize: 15, fontWeight: 500 }}>Google Drive</h3>
+              <div style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--sky-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <IconCloud size={14} style={{ color: 'var(--sky)' }} />
+              </div>
+              <h3 style={{ fontSize: 15, fontWeight: 600 }}>Google Drive</h3>
             </div>
             {wsLoading ? (
               <div className="skeleton" style={{ height: 48 }} />
@@ -248,12 +270,12 @@ export default function DashboardPage() {
 
           {/* Quick Links + AI Tools */}
           <div className="card mobile-card">
-            <h3 style={{ fontSize: 15, fontWeight: 500, marginBottom: 10 }}>ทางลัดระบบ & AI</h3>
+            <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 10 }}>ทางลัดระบบ & AI</h3>
             <div style={{ marginBottom: 12 }}>
               <div style={{ fontSize: 11, color: 'var(--text-hint)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>มหาวิทยาลัย</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
                 <a href="http://regis.nsru.ac.th/" target="_blank" rel="noopener noreferrer" className="btn-ghost" style={{ justifyContent: 'flex-start', padding: '6px 10px', fontSize: 12 }}>
-                  <IconExternalLink size={13} style={{ color: 'var(--orange)' }} />ระบบทะเบียน
+                  <IconExternalLink size={13} style={{ color: 'var(--accent)' }} />ระบบทะเบียน
                 </a>
                 <a href="https://elearning.nsru.ac.th/" target="_blank" rel="noopener noreferrer" className="btn-ghost" style={{ justifyContent: 'flex-start', padding: '6px 10px', fontSize: 12 }}>
                   <IconExternalLink size={13} style={{ color: 'var(--success)' }} />E-Learning
@@ -275,10 +297,10 @@ export default function DashboardPage() {
 
           {/* Weekly Progress */}
           <div className="card mobile-card" style={{ padding: 16 }}>
-            <h3 style={{ fontSize: 15, fontWeight: 500, marginBottom: 8 }}>Progress สัปดาห์นี้</h3>
+            <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 8 }}>Progress สัปดาห์นี้</h3>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 6 }}>
               <span style={{ color: 'var(--text-secondary)' }}>งานเสร็จ</span>
-              <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{completedThisWeek}/{totalTodos}</span>
+              <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{completedThisWeek}/{totalTodos}</span>
             </div>
             <div className="progress-bar"><div className="progress-bar-fill" style={{ width: `${progressPct}%` }} /></div>
           </div>

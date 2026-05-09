@@ -36,6 +36,10 @@ export default function NotesPage() {
     return text.length > 80 ? text.substring(0, 80) + '...' : text || 'ยังไม่มีเนื้อหา';
   };
 
+  const handleNoteClick = (noteId: string) => {
+    router.push(`/notes/${noteId}`);
+  };
+
   if (loading) return <div className="skeleton" style={{ height: 400 }} />;
 
   return (
@@ -48,10 +52,10 @@ export default function NotesPage() {
         </div>
         <div style={{ display: 'flex', gap: 6, overflowX: 'auto' }}>
           <button className={`chip ${!subjectFilter ? 'active' : ''}`} onClick={() => setSubjectFilter('')}
-            style={!subjectFilter ? { borderColor: 'var(--orange)', color: 'var(--orange)' } : {}}>ทั้งหมด</button>
+            style={!subjectFilter ? { borderColor: 'var(--accent)', color: 'var(--accent)', background: 'var(--accent-soft)' } : {}}>ทั้งหมด</button>
           {subjects.map((s) => (
             <button key={s} className={`chip ${subjectFilter === s ? 'active' : ''}`} onClick={() => setSubjectFilter(s)}
-              style={subjectFilter === s ? { borderColor: 'var(--orange)', color: 'var(--orange)' } : {}}>{s}</button>
+              style={subjectFilter === s ? { borderColor: 'var(--accent)', color: 'var(--accent)', background: 'var(--accent-soft)' } : {}}>{s}</button>
           ))}
         </div>
         <button className="btn-primary" onClick={handleNew}>
@@ -62,8 +66,16 @@ export default function NotesPage() {
       {/* Notes Grid */}
       {filtered.length === 0 ? (
         <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-hint)' }}>
-          <IconFileText size={40} style={{ opacity: 0.3, marginBottom: 12 }} />
-          <p style={{ fontSize: 15 }}>ยังไม่มีโน้ต</p>
+          <div style={{ 
+            width: 80, height: 80, borderRadius: '50%', 
+            background: 'var(--accent-soft)', 
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            margin: '0 auto 16px',
+          }}>
+            <IconFileText size={36} style={{ color: 'var(--accent)', opacity: 0.6 }} />
+          </div>
+          <p style={{ fontSize: 15, marginBottom: 4 }}>ยังไม่มีโน้ต</p>
+          <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>สร้างโน้ตแรกเพื่อเริ่มจดบันทึก</p>
           <button className="btn-primary" onClick={handleNew} style={{ marginTop: 16 }}>
             <IconPlus size={16} /> สร้างโน้ตแรก
           </button>
@@ -71,10 +83,28 @@ export default function NotesPage() {
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
           {filtered.map((note) => (
-            <div key={note.id} className="card" onClick={() => router.push(`/notes/${note.id}`)}
-              style={{ cursor: 'pointer', background: note.color || 'var(--surface)', padding: 16, transition: 'transform 0.15s' }}
-              onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}>
+            <div 
+              key={note.id} 
+              className="card note-card" 
+              onClick={() => handleNoteClick(note.id)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleNoteClick(note.id); }}
+              style={{ 
+                cursor: 'pointer', 
+                background: note.color || 'var(--surface)', 
+                padding: 18,
+                borderLeft: `3px solid ${
+                  note.color === 'var(--note-peach)' ? 'var(--accent)' :
+                  note.color === 'var(--note-pink)' ? 'var(--rose)' :
+                  note.color === 'var(--note-lavender)' ? 'var(--violet)' :
+                  note.color === 'var(--note-blue)' ? 'var(--sky)' :
+                  note.color === 'var(--note-green)' ? 'var(--teal)' :
+                  note.color === 'var(--note-yellow)' ? 'var(--amber)' :
+                  'var(--border-strong)'
+                }`,
+              }}
+            >
               <h4 style={{ fontSize: 16, fontWeight: 700, marginBottom: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {note.title}
               </h4>
