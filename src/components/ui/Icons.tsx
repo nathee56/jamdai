@@ -112,6 +112,17 @@ export const IconChevronRight = ({ size, ...props }: IconProps) => (
   </svg>
 );
 
+export const IconGripVertical = ({ size, ...props }: IconProps) => (
+  <svg {...defaultProps(size)} {...props}>
+    <circle cx="9" cy="12" r="1" />
+    <circle cx="9" cy="5" r="1" />
+    <circle cx="9" cy="19" r="1" />
+    <circle cx="15" cy="12" r="1" />
+    <circle cx="15" cy="5" r="1" />
+    <circle cx="15" cy="19" r="1" />
+  </svg>
+);
+
 export const IconMoon = ({ size, ...props }: IconProps) => (
   <svg {...defaultProps(size)} {...props}>
     <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />

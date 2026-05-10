@@ -13,6 +13,8 @@ import { useAIMemory } from '@/lib/hooks/useAIMemory';
 import { AnimatedProgressCircle } from '@/components/ui/AnimatedComponents';
 import EmptyState from '@/components/ui/EmptyState';
 import TaskProgressChart from '@/components/ui/TaskProgressChart';
+import DraggableWidgetCard from '@/components/ui/DraggableWidgetCard';
+import { Reorder } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 
 export default function DashboardPage() {
@@ -23,6 +25,26 @@ export default function DashboardPage() {
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
   const router = useRouter();
+
+  const defaultWidgetOrder = ['todos', 'notes', 'links', 'progress'];
+  const [widgetOrder, setWidgetOrder] = useState(defaultWidgetOrder);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('app_widget_order');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length === defaultWidgetOrder.length) {
+          setWidgetOrder(parsed);
+        }
+      } catch (e) {}
+    }
+  }, []);
+
+  const handleReorder = (newOrder: string[]) => {
+    setWidgetOrder(newOrder);
+    localStorage.setItem('app_widget_order', JSON.stringify(newOrder));
+  };
 
   useEffect(() => {
     const check = () => {
@@ -162,112 +184,132 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Content Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: 18 }} className="stagger-children">
-        {/* Col 1: Today's Todos */}
-        <div className="card mobile-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 999, background: 'var(--accent-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <IconCheckSquare size={16} style={{ color: 'var(--accent)' }} />
-              </div>
-              <h3 style={{ fontSize: 15, fontWeight: 600 }}>To-Do วันนี้</h3>
-            </div>
-            <Link href="/app/todo" style={{ fontSize: 12, color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }}>ดูทั้งหมด →</Link>
-          </div>
-          {todayTodos.length === 0 ? (
-            <div className="py-2">
-              <EmptyState 
-                icon={<IconCheckSquare size={28} />}
-                title="ไม่มีงานค้าง"
-                description="ยอดเยี่ยมมาก! วันนี้คุณไม่มีงานที่ต้องทำแล้ว พักผ่อนให้เต็มที่"
-                actionLabel="เพิ่มงานใหม่"
-                onAction={() => router.push('/app/todo?new=1')}
-              />
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-              {todayTodos.map((todo) => (
-                <div key={todo.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '0.5px solid var(--border)' }}>
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: todo.priority === 'urgent' ? 'var(--danger)' : 'var(--accent)', flexShrink: 0, boxShadow: `0 0 6px ${todo.priority === 'urgent' ? 'rgba(244,63,94,0.3)' : 'rgba(255,107,26,0.3)'}` }} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{todo.title}</div>
-                    {todo.subject && <span className="pill pill-neutral" style={{ marginTop: 3, fontSize: 9 }}>{todo.subject}</span>}
+      {/* Content Grid using Reorder */}
+      <Reorder.Group 
+        axis="y" 
+        values={widgetOrder} 
+        onReorder={handleReorder}
+        style={{ 
+          display: 'grid', 
+          gridTemplateColumns: gridCols, 
+          gap: 18,
+          alignItems: 'start'
+        }} 
+        className="stagger-children"
+      >
+        {widgetOrder.map((widgetId) => {
+          if (widgetId === 'todos') {
+            return (
+              <DraggableWidgetCard key="todos" id="todos" isDraggable={!isMobile} className="card mobile-card" style={isTablet ? { gridColumn: 'span 2' } : {}}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 999, background: 'var(--accent-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <IconCheckSquare size={16} style={{ color: 'var(--accent)' }} />
+                    </div>
+                    <h3 style={{ fontSize: 15, fontWeight: 600 }}>To-Do วันนี้</h3>
                   </div>
-                  {todo.dueDate && (
-                    <span style={{ fontSize: 11, color: 'var(--text-hint)', whiteSpace: 'nowrap' }}>
-                      {todo.dueDate.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}
-                    </span>
-                  )}
+                  <Link href="/app/todo" style={{ fontSize: 12, color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }}>ดูทั้งหมด →</Link>
                 </div>
-              ))}
-              
-              <div className="mt-6 border-t border-border pt-4">
-                <h4 className="text-xs font-semibold text-secondary mb-2 uppercase tracking-wider">สถิติงาน (To-Do)</h4>
-                <TaskProgressChart completed={completedThisWeek} pending={pendingTodos.length} />
-              </div>
-            </div>
-          )}
-        </div>
-
-
-
-        {/* Col 3: Notes + Links + Progress */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 18, gridColumn: isTablet ? 'span 2' : undefined }}>
-          {/* Recent Notes */}
-          <div className="card mobile-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 999, background: 'var(--teal-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <IconFileText size={16} style={{ color: 'var(--teal)' }} />
-                </div>
-                <h3 style={{ fontSize: 15, fontWeight: 600 }}>โน้ตล่าสุด</h3>
-              </div>
-              <Link href="/app/notes" style={{ fontSize: 12, color: 'var(--teal)', textDecoration: 'none', fontWeight: 500 }}>ดูทั้งหมด →</Link>
-            </div>
-            {notes.slice(0, 3).map((note) => (
-              <Link key={note.id} href={`/app/notes/${note.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                <div style={{ padding: '7px 0', borderBottom: '0.5px solid var(--border)', cursor: 'pointer' }}>
-                  <div style={{ fontSize: 13, fontWeight: 500 }}>{note.title}</div>
-                  <div style={{ fontSize: 11, color: 'var(--text-hint)', marginTop: 2 }}>
-                    {note.updatedAt.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}
+                {todayTodos.length === 0 ? (
+                  <div className="py-2">
+                    <EmptyState 
+                      icon={<IconCheckSquare size={28} />}
+                      title="ไม่มีงานค้าง"
+                      description="ยอดเยี่ยมมาก! วันนี้คุณไม่มีงานที่ต้องทำแล้ว พักผ่อนให้เต็มที่"
+                      actionLabel="เพิ่มงานใหม่"
+                      onAction={() => router.push('/app/todo?new=1')}
+                    />
                   </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                    {todayTodos.map((todo) => (
+                      <div key={todo.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '0.5px solid var(--border)' }}>
+                        <div style={{ width: 8, height: 8, borderRadius: '50%', background: todo.priority === 'urgent' ? 'var(--danger)' : 'var(--accent)', flexShrink: 0, boxShadow: `0 0 6px ${todo.priority === 'urgent' ? 'rgba(244,63,94,0.3)' : 'rgba(255,107,26,0.3)'}` }} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 13, fontWeight: 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{todo.title}</div>
+                          {todo.subject && <span className="pill pill-neutral" style={{ marginTop: 3, fontSize: 9 }}>{todo.subject}</span>}
+                        </div>
+                        {todo.dueDate && (
+                          <span style={{ fontSize: 11, color: 'var(--text-hint)', whiteSpace: 'nowrap' }}>
+                            {todo.dueDate.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                    
+                    <div className="mt-6 border-t border-border pt-4">
+                      <h4 className="text-xs font-semibold text-secondary mb-2 uppercase tracking-wider">สถิติงาน (To-Do)</h4>
+                      <TaskProgressChart completed={completedThisWeek} pending={pendingTodos.length} />
+                    </div>
+                  </div>
+                )}
+              </DraggableWidgetCard>
+            );
+          }
+
+          if (widgetId === 'notes') {
+            return (
+              <DraggableWidgetCard key="notes" id="notes" isDraggable={!isMobile} className="card mobile-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 999, background: 'var(--teal-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <IconFileText size={16} style={{ color: 'var(--teal)' }} />
+                    </div>
+                    <h3 style={{ fontSize: 15, fontWeight: 600 }}>โน้ตล่าสุด</h3>
+                  </div>
+                  <Link href="/app/notes" style={{ fontSize: 12, color: 'var(--teal)', textDecoration: 'none', fontWeight: 500 }}>ดูทั้งหมด →</Link>
                 </div>
-              </Link>
-            ))}
-            {notes.length === 0 && <p style={{ fontSize: 13, color: 'var(--text-hint)', textAlign: 'center', padding: 12 }}>ยังไม่มีโน้ต</p>}
-          </div>
-
-
-
-          {/* Quick Links + AI Tools */}
-          <div className="card mobile-card">
-            <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 10 }}>ทางลัดระบบ & AI</h3>
-
-            <div>
-              <div style={{ fontSize: 11, color: 'var(--text-hint)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>AI Assistants</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {aiTools.map((tool) => (
-                  <a key={tool.name} href={tool.url} target="_blank" rel="noopener noreferrer" className="chip" style={{ padding: '5px 10px', fontSize: 12, background: 'var(--surface)' }}>
-                    <img src={`https://www.google.com/s2/favicons?sz=32&domain=${new URL(tool.url).hostname}`} alt="" style={{ width: 13, height: 13 }} />
-                    <span style={{ fontWeight: 500 }}>{tool.name}</span>
-                  </a>
+                {notes.slice(0, 3).map((note) => (
+                  <Link key={note.id} href={`/app/notes/${note.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <div style={{ padding: '7px 0', borderBottom: '0.5px solid var(--border)', cursor: 'pointer' }}>
+                      <div style={{ fontSize: 13, fontWeight: 500 }}>{note.title}</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-hint)', marginTop: 2 }}>
+                        {note.updatedAt.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}
+                      </div>
+                    </div>
+                  </Link>
                 ))}
-              </div>
-            </div>
-          </div>
+                {notes.length === 0 && <p style={{ fontSize: 13, color: 'var(--text-hint)', textAlign: 'center', padding: 12 }}>ยังไม่มีโน้ต</p>}
+              </DraggableWidgetCard>
+            );
+          }
 
-          {/* Weekly Progress */}
-          <div className="card mobile-card" style={{ padding: 16 }}>
-            <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 8 }}>Progress สัปดาห์นี้</h3>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 6 }}>
-              <span style={{ color: 'var(--text-secondary)' }}>งานเสร็จ</span>
-              <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{completedThisWeek}/{totalTodos}</span>
-            </div>
-            <div className="progress-bar"><div className="progress-bar-fill" style={{ width: `${progressPct}%` }} /></div>
-          </div>
-        </div>
-      </div>
+          if (widgetId === 'links') {
+            return (
+              <DraggableWidgetCard key="links" id="links" isDraggable={!isMobile} className="card mobile-card">
+                <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 10 }}>ทางลัดระบบ & AI</h3>
+
+                <div>
+                  <div style={{ fontSize: 11, color: 'var(--text-hint)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>AI Assistants</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {aiTools.map((tool) => (
+                      <a key={tool.name} href={tool.url} target="_blank" rel="noopener noreferrer" className="chip" style={{ padding: '5px 10px', fontSize: 12, background: 'var(--surface)' }}>
+                        <img src={`https://www.google.com/s2/favicons?sz=32&domain=${new URL(tool.url).hostname}`} alt="" style={{ width: 13, height: 13 }} />
+                        <span style={{ fontWeight: 500 }}>{tool.name}</span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              </DraggableWidgetCard>
+            );
+          }
+
+          if (widgetId === 'progress') {
+            return (
+              <DraggableWidgetCard key="progress" id="progress" isDraggable={!isMobile} className="card mobile-card">
+                <h3 style={{ fontSize: 15, fontWeight: 600, marginBottom: 8 }}>Progress สัปดาห์นี้</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 6 }}>
+                  <span style={{ color: 'var(--text-secondary)' }}>งานเสร็จ</span>
+                  <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{completedThisWeek}/{totalTodos}</span>
+                </div>
+                <div className="progress-bar"><div className="progress-bar-fill" style={{ width: `${progressPct}%` }} /></div>
+              </DraggableWidgetCard>
+            );
+          }
+
+          return null;
+        })}
+      </Reorder.Group>
     </div>
   );
 }
