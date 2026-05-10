@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Sarabun } from "next/font/google";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 
 const sarabun = Sarabun({
@@ -29,6 +30,7 @@ export default function RootLayout({
       </head>
       <body className={`${sarabun.variable}`} suppressHydrationWarning>
         {children}
+        <Analytics />
       </body>
     </html>
   );
