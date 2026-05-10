@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { db } from '@/lib/firebase';
 import { useAuth } from './useAuth';
+import { useLocalNotes } from './useLocalNotes';
 import {
   collection, doc, addDoc, updateDoc, deleteDoc,
   onSnapshot, query, orderBy, Timestamp,
@@ -19,13 +20,14 @@ export interface Note {
 }
 
 export function useNotes() {
-  const { user } = useAuth();
+  const { user, isLocalMode } = useAuth();
+  const localResult = useLocalNotes();
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (!user) { setNotes([]); setLoading(false); return; }
+    if (isLocalMode || !user) { setNotes([]); setLoading(false); return; }
     const q = query(collection(db, 'users', user.uid, 'notes'), orderBy('updatedAt', 'desc'));
     const unsub = onSnapshot(q, (snap) => {
       setNotes(snap.docs.map((d) => {
@@ -72,6 +74,9 @@ export function useNotes() {
     if (!user) return;
     await deleteDoc(doc(db, 'users', user.uid, 'notes', id));
   }, [user]);
+
+  // Local mode: return localStorage results
+  if (isLocalMode) return localResult;
 
   return { notes, loading, addNote, updateNote, autoSave, deleteNote };
 }

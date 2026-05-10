@@ -12,6 +12,10 @@ export default function MobileNav() {
   const router = useRouter();
   const [showSheet, setShowSheet] = useState(false);
 
+  const isLocalMode = typeof window !== 'undefined' && localStorage.getItem('studyos_local_mode') === 'true';
+  const isNU = !isLocalMode && pathname.startsWith('/dashboard');
+  const basePath = isNU ? '/dashboard' : '/app';
+
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
     return pathname.startsWith(href);
@@ -23,11 +27,11 @@ export default function MobileNav() {
       {showSheet && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 55, background: 'rgba(0,0,0,0.3)' }} onClick={() => setShowSheet(false)}>
           <div className="fab-sheet open" onClick={(e) => e.stopPropagation()}>
-            <button className="fab-sheet-item" onClick={() => { router.push('/todo?new=1'); setShowSheet(false); }}>
+            <button className="fab-sheet-item" onClick={() => { router.push(`${basePath}/todo?new=1`); setShowSheet(false); }}>
               <IconCheckSquare size={18} style={{ color: 'var(--accent)' }} />
               <span>เพิ่ม To-Do</span>
             </button>
-            <button className="fab-sheet-item" onClick={() => { router.push('/notes?new=1'); setShowSheet(false); }}>
+            <button className="fab-sheet-item" onClick={() => { router.push(`${basePath}/notes?new=1`); setShowSheet(false); }}>
               <IconFileText size={18} style={{ color: 'var(--accent)' }} />
               <span>สร้างโน้ต</span>
             </button>
@@ -37,14 +41,14 @@ export default function MobileNav() {
 
       {/* Bottom Navigation — 4 tabs + center FAB */}
       <nav className="mobile-nav">
-        <Link href="/" className={`mobile-nav-item ${isActive('/') ? 'active' : ''}`}>
+        <Link href={basePath} className={`mobile-nav-item ${isActive(basePath) ? 'active' : ''}`}>
           <IconHome size={24} />
-          {isActive('/') && <span className="nav-active-dot" />}
+          {isActive(basePath) && <span className="nav-active-dot" />}
         </Link>
 
-        <Link href="/todo" className={`mobile-nav-item ${isActive('/todo') ? 'active' : ''}`}>
+        <Link href={`${basePath}/todo`} className={`mobile-nav-item ${isActive(`${basePath}/todo`) ? 'active' : ''}`}>
           <IconCheckSquare size={24} />
-          {isActive('/todo') && <span className="nav-active-dot" />}
+          {isActive(`${basePath}/todo`) && <span className="nav-active-dot" />}
         </Link>
 
         <button
@@ -54,14 +58,21 @@ export default function MobileNav() {
           <IconPlus size={26} style={{ transform: showSheet ? 'rotate(45deg)' : 'none', transition: 'transform 0.2s' }} />
         </button>
 
-        <Link href="/schedule" className={`mobile-nav-item ${isActive('/schedule') ? 'active' : ''}`}>
-          <IconCalendar size={24} />
-          {isActive('/schedule') && <span className="nav-active-dot" />}
-        </Link>
+        {isNU ? (
+          <Link href={`${basePath}/schedule`} className={`mobile-nav-item ${isActive(`${basePath}/schedule`) ? 'active' : ''}`}>
+            <IconCalendar size={24} />
+            {isActive(`${basePath}/schedule`) && <span className="nav-active-dot" />}
+          </Link>
+        ) : (
+          <Link href={`${basePath}/notes`} className={`mobile-nav-item ${isActive(`${basePath}/notes`) ? 'active' : ''}`}>
+            <IconFileText size={24} />
+            {isActive(`${basePath}/notes`) && <span className="nav-active-dot" />}
+          </Link>
+        )}
 
-        <Link href="/ai" className={`mobile-nav-item ${isActive('/ai') ? 'active' : ''}`}>
+        <Link href={`${basePath}/ai`} className={`mobile-nav-item ${isActive(`${basePath}/ai`) ? 'active' : ''}`}>
           <IconMessageCircle size={24} />
-          {isActive('/ai') && <span className="nav-active-dot" />}
+          {isActive(`${basePath}/ai`) && <span className="nav-active-dot" />}
         </Link>
       </nav>
     </>

@@ -9,7 +9,8 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && (user || isLocalMode)) router.push('/');
+    if (!loading && isLocalMode) router.push('/app');
+    else if (!loading && user) router.push('/');
   }, [user, isLocalMode, loading, router]);
 
   if (loading) return null;
@@ -17,38 +18,41 @@ export default function LoginPage() {
   return (
     <div style={{
       minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'var(--bg)', padding: 20,
+      background: 'var(--surface-base)', padding: '20px',
     }}>
-      <div style={{
-        background: 'var(--surface)', border: '0.5px solid var(--border-strong)',
-        borderRadius: 14, padding: '48px 40px', textAlign: 'center',
-        maxWidth: 420, width: '100%',
-      }}>
+      <div 
+        className="card animate-in"
+        style={{
+          borderRadius: 28, padding: '48px 24px', textAlign: 'center',
+          maxWidth: 420, width: '100%',
+          border: '1px solid var(--border)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.04)',
+        }}
+      >
         {/* Logo */}
-        <h1 style={{ fontWeight: 700, fontSize: 32, marginBottom: 8 }}>
-          Study<span style={{ color: 'var(--orange)' }}>OS</span>
+        <h1 style={{ fontWeight: 800, fontSize: 34, marginBottom: 8, letterSpacing: '-0.5px' }}>
+          Study<span style={{ color: 'var(--accent)' }}>OS</span>
         </h1>
-        <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 8 }}>
+        <p style={{ fontSize: 15, color: 'var(--text-secondary)', marginBottom: 8, fontWeight: 500 }}>
           Productivity Workspace สำหรับนักศึกษา
         </p>
-        <p style={{ fontSize: 12, color: 'var(--text-hint)', marginBottom: 36 }}>
+        <p style={{ fontSize: 13, color: 'var(--text-hint)', marginBottom: 40, fontWeight: 500 }}>
           มหาวิทยาลัยราชภัฏนครสวรรค์
         </p>
 
         {/* Google Sign In */}
         <button
           onClick={signIn}
+          className="btn-secondary"
           style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
-            width: '100%', padding: '14px 24px',
-            background: 'var(--surface)', border: '0.5px solid var(--border-strong)',
-            borderRadius: 8, cursor: 'pointer', fontSize: 15, fontWeight: 500,
-            color: 'var(--text-primary)', transition: 'all 0.2s',
+            width: '100%', height: 56, fontSize: 16,
+            borderRadius: 999,
+            justifyContent: 'center', gap: 12,
+            border: '1.5px solid var(--border-strong)',
+            marginBottom: 16
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--orange)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-strong)'; }}
         >
-          <svg width="20" height="20" viewBox="0 0 48 48">
+          <svg width="22" height="22" viewBox="0 0 48 48">
             <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
             <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
             <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
@@ -57,40 +61,43 @@ export default function LoginPage() {
           เข้าสู่ระบบด้วย Google
         </button>
 
-        <p style={{ fontSize: 11, color: 'var(--text-hint)', marginTop: 12, marginBottom: 24, lineHeight: 1.6 }}>
+        <p style={{ fontSize: 13, color: 'var(--text-hint)', marginBottom: 28, lineHeight: 1.5 }}>
           เข้าสู่ระบบเพื่อเปิดใช้งาน Google Drive<br />และซิงค์ข้อมูลข้ามอุปกรณ์
         </p>
 
         {/* Divider */}
-        <div style={{ display: 'flex', alignItems: 'center', margin: '24px 0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', margin: '28px 0' }}>
           <div style={{ flex: 1, height: 1, background: 'var(--border)' }}></div>
-          <span style={{ margin: '0 12px', fontSize: 12, color: 'var(--text-hint)' }}>หรือ</span>
+          <span style={{ margin: '0 16px', fontSize: 12, fontWeight: 700, color: 'var(--text-hint)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>หรือ</span>
           <div style={{ flex: 1, height: 1, background: 'var(--border)' }}></div>
         </div>
 
         {/* Local Mode Sign In */}
         <button
           onClick={loginLocalMode}
+          className="btn-ghost"
           style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
-            width: '100%', padding: '14px 24px',
-            background: 'var(--surface)', border: '0.5px solid var(--border-strong)',
-            borderRadius: 8, cursor: 'pointer', fontSize: 15, fontWeight: 500,
-            color: 'var(--text-primary)', transition: 'all 0.2s',
+            width: '100%', height: 56, fontSize: 15,
+            borderRadius: 999,
+            justifyContent: 'center', gap: 10,
+            background: 'var(--surface-raised)',
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--text-secondary)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-strong)'; }}
         >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
             <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
           </svg>
-          ความปลอดภัยสูง (Local Mode)
+          ใช้งานแบบส่วนตัว (Local Mode)
         </button>
 
-        <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 12, lineHeight: 1.6, background: 'var(--bg)', padding: 12, borderRadius: 8 }}>
-          <strong style={{ color: 'var(--orange)' }}>Local Mode:</strong> ข้อมูลของคุณจะถูกเก็บไว้ในเครื่องนี้เท่านั้น ไม่มีการขอสิทธิ์ Google และไม่สามารถซิงค์ผ่านคลาวด์ได้
-        </p>
+        <div style={{ 
+          marginTop: 24, padding: 16, 
+          background: 'var(--surface-base)', borderRadius: 16, 
+        }}>
+          <p style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.6, fontWeight: 500 }}>
+            <strong style={{ color: 'var(--accent)' }}>Local Mode:</strong> ข้อมูลจะถูกเก็บไว้ในเครื่องนี้เท่านั้น ไม่มีการขอสิทธิ์ Google และไม่ซิงค์ผ่านคลาวด์
+          </p>
+        </div>
       </div>
     </div>
   );

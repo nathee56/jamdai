@@ -161,7 +161,7 @@ export default function TodoPage() {
         <div className="progress-bar"><div className="progress-bar-fill" style={{ width: `${pct}%` }} /></div>
 
         {/* AI Study Planner */}
-        <div style={{ marginTop: 24, padding: 16, background: 'var(--surface)', borderRadius: 12, border: '1px solid var(--orange-light)' }}>
+        <div style={{ marginTop: 24, padding: 20, background: 'var(--surface)', borderRadius: 24, border: '1px solid var(--orange-light)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
             <IconSparkle size={16} style={{ color: 'var(--orange)' }} />
             <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--orange)' }}>AI Study Planner</span>
@@ -170,7 +170,7 @@ export default function TodoPage() {
             ให้ AI ช่วยจัดตารางการอ่านหนังสือให้คุณตามความยากและวันส่ง
           </p>
           <button className="btn-primary" style={{ width: '100%', padding: '8px', fontSize: 12 }}
-            onClick={() => window.location.href = `/ai?q=${encodeURIComponent('ช่วยวางแผนการทำงานและอ่านหนังสือจากรายการ To-Do ของฉันให้หน่อย ควรเริ่มจากอันไหนก่อนดี?')}`}>
+            onClick={() => window.location.href = `/app/ai?q=${encodeURIComponent('ช่วยวางแผนการทำงานและอ่านหนังสือจากรายการ To-Do ของฉันให้หน่อย ควรเริ่มจากอันไหนก่อนดี?')}`}>
             วางแผนให้ฉันที
           </button>
         </div>

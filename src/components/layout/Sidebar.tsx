@@ -5,30 +5,46 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/hooks/useAuth';
 import {
   IconHome, IconCheckSquare, IconCalendar, IconFileText,
-  IconCpu, IconMessageCircle, IconSettings, IconLogOut, IconCloud
+  IconCpu, IconMessageCircle, IconSettings, IconLogOut, IconCloud, IconMail
 } from '@/components/ui/Icons';
 
-const navItems = [
-  { href: '/', label: 'Dashboard', icon: IconHome },
-  { href: '/todo', label: 'To-Do List', icon: IconCheckSquare },
-  { href: '/schedule', label: 'ตารางเรียน', icon: IconCalendar },
-  { href: '/notes', label: 'Notes', icon: IconFileText },
-  { href: '/drive', label: 'Google Drive', icon: IconCloud },
-  { href: '/ai-tools', label: 'AI Tools', icon: IconCpu },
-  { href: '/ai', label: 'AI Assistant', icon: IconMessageCircle },
+const nuNavItems = [
+  { href: '/dashboard', label: 'Dashboard', icon: IconHome },
+  { href: '/dashboard/todo', label: 'To-Do List', icon: IconCheckSquare },
+  { href: '/dashboard/schedule', label: 'ตารางเรียน', icon: IconCalendar },
+  { href: '/dashboard/notes', label: 'Notes', icon: IconFileText },
+  { href: '/dashboard/google-workspace', label: 'Google Workspace', icon: IconMail },
+  { href: '/dashboard/ai-tools', label: 'AI Tools', icon: IconCpu },
+  { href: '/dashboard/ai', label: 'AI Assistant', icon: IconMessageCircle },
+];
+
+const publicNavItems = [
+  { href: '/app', label: 'หน้าแรก', icon: IconHome },
+  { href: '/app/todo', label: 'งาน', icon: IconCheckSquare },
+  { href: '/app/notes', label: 'โน้ต', icon: IconFileText },
+  { href: '/app/ai', label: 'AI', icon: IconMessageCircle },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
   const { user, isLocalMode, signOut } = useAuth();
   
-  const filteredNavItems = navItems.filter(item => {
-    if (isLocalMode && item.href === '/drive') return false;
-    return true;
-  });
+  const isNU = pathname.startsWith('/dashboard');
+  
+  // Local mode: only show core features
+  const localNavItems = [
+    { href: '/app', label: 'หน้าแรก', icon: IconHome },
+    { href: '/app/todo', label: 'งาน', icon: IconCheckSquare },
+    { href: '/app/notes', label: 'โน้ต', icon: IconFileText },
+    { href: '/app/ai', label: 'AI', icon: IconMessageCircle },
+  ];
+  
+  const navItems = isLocalMode ? localNavItems : isNU ? nuNavItems : publicNavItems;
+
+  const filteredNavItems = navItems;
 
   const isActive = (href: string) => {
-    if (href === '/') return pathname === '/';
+    if (href === '/dashboard' || href === '/app') return pathname === href;
     return pathname.startsWith(href);
   };
 
@@ -62,8 +78,8 @@ export default function Sidebar() {
         <div style={{ margin: '8px 8px', borderTop: '0.5px solid var(--border)' }} />
 
         <Link
-          href="/settings"
-          className={`nav-item ${isActive('/settings') ? 'active' : ''}`}
+          href={isLocalMode ? '/app/settings' : isNU ? '/dashboard/settings' : '/app/settings'}
+          className={`nav-item ${isActive('/settings') || isActive('/dashboard/settings') || isActive('/app/settings') ? 'active' : ''}`}
           title="ตั้งค่า"
         >
           <IconSettings size={18} />
@@ -72,7 +88,7 @@ export default function Sidebar() {
       </nav>
 
       {/* User Profile */}
-      {user && (
+      {user ? (
         <div style={{
           padding: '16px', borderTop: '1px solid var(--border)',
           display: 'flex', alignItems: 'center', gap: 12,
@@ -97,6 +113,29 @@ export default function Sidebar() {
             <div style={{ fontSize: 12, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {user.email}
             </div>
+          </div>
+          <button className="btn-icon sidebar-user-info" onClick={signOut} title="ออกจากระบบ" style={{ width: 32, height: 32 }}>
+            <IconLogOut size={16} />
+          </button>
+        </div>
+      ) : isLocalMode && (
+        <div style={{
+          padding: '16px', borderTop: '1px solid var(--border)',
+          display: 'flex', alignItems: 'center', gap: 10,
+        }}>
+          <div style={{
+            width: 32, height: 32, borderRadius: '50%',
+            background: 'var(--surface-raised)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-hint)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+          </div>
+          <div className="sidebar-user-info" style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>โหมดส่วนตัว</div>
+            <div style={{ fontSize: 11, color: 'var(--text-hint)' }}>ข้อมูลเก็บในเครื่อง</div>
           </div>
           <button className="btn-icon sidebar-user-info" onClick={signOut} title="ออกจากระบบ" style={{ width: 32, height: 32 }}>
             <IconLogOut size={16} />

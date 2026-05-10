@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { db } from '@/lib/firebase';
 import { useAuth } from './useAuth';
+import { useLocalTodos } from './useLocalTodos';
 import {
   collection,
   doc,
@@ -27,12 +28,15 @@ export interface Todo {
 }
 
 export function useTodos() {
-  const { user } = useAuth();
+  const { user, isLocalMode } = useAuth();
+  const localResult = useLocalTodos();
+  
+  // If local mode, use localStorage — never touch Firestore
   const [todos, setTodos] = useState<Todo[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) {
+    if (isLocalMode || !user) {
       setTodos([]);
       setLoading(false);
       return;
@@ -105,6 +109,9 @@ export function useTodos() {
     },
     [user]
   );
+
+  // Local mode: return localStorage results
+  if (isLocalMode) return localResult;
 
   return { todos, loading, addTodo, updateTodo, toggleTodo, deleteTodo };
 }

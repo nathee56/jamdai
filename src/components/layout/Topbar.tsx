@@ -17,12 +17,13 @@ interface TopbarProps {
 
 export default function Topbar({ title, subtitle }: TopbarProps) {
   const { theme, toggleTheme } = useTheme();
-  const { user } = useAuth();
+  const { user, isLocalMode, signIn } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showLocalTooltip, setShowLocalTooltip] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= 768);
@@ -31,19 +32,36 @@ export default function Topbar({ title, subtitle }: TopbarProps) {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const menuItems = [
-    { href: '/', label: 'Dashboard', icon: IconHome },
-    { href: '/todo', label: 'To-Do List', icon: IconCheckSquare },
-    { href: '/schedule', label: 'ตารางเรียน', icon: IconCalendar },
-    { href: '/notes', label: 'โน้ตทั้งหมด', icon: IconFileText },
-    { href: '/ai', label: 'AI Assistant', icon: IconMessageCircle },
-    { href: '/ai-tools', label: 'AI Tools', icon: IconCpu },
-    { href: '/settings', label: 'ตั้งค่า', icon: IconSettings },
+  const isNU = !isLocalMode && pathname.startsWith('/dashboard');
+  const basePath = isNU ? '/dashboard' : '/app';
+
+  const localMenuItems = [
+    { href: '/app', label: 'หน้าแรก', icon: IconHome },
+    { href: '/app/todo', label: 'งาน', icon: IconCheckSquare },
+    { href: '/app/notes', label: 'โน้ต', icon: IconFileText },
+    { href: '/app/ai', label: 'AI', icon: IconMessageCircle },
+    { href: '/app/settings', label: 'ตั้งค่า', icon: IconSettings },
+  ];
+
+  const menuItems = isLocalMode ? localMenuItems : isNU ? [
+    { href: '/dashboard', label: 'Dashboard', icon: IconHome },
+    { href: '/dashboard/todo', label: 'To-Do List', icon: IconCheckSquare },
+    { href: '/dashboard/schedule', label: 'ตารางเรียน', icon: IconCalendar },
+    { href: '/dashboard/notes', label: 'โน้ตทั้งหมด', icon: IconFileText },
+    { href: '/dashboard/ai', label: 'AI Assistant', icon: IconMessageCircle },
+    { href: '/dashboard/ai-tools', label: 'AI Tools', icon: IconCpu },
+    { href: '/dashboard/settings', label: 'ตั้งค่า', icon: IconSettings },
+  ] : [
+    { href: '/app', label: 'หน้าแรก', icon: IconHome },
+    { href: '/app/todo', label: 'งาน', icon: IconCheckSquare },
+    { href: '/app/notes', label: 'โน้ต', icon: IconFileText },
+    { href: '/app/ai', label: 'AI', icon: IconMessageCircle },
+    { href: '/app/settings', label: 'ตั้งค่า', icon: IconSettings },
   ];
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
-      router.push(`/ai?q=${encodeURIComponent(searchQuery)}`);
+      router.push(`${basePath}/ai?q=${encodeURIComponent(searchQuery)}`);
       setSearchQuery('');
     }
   };
@@ -62,8 +80,8 @@ export default function Topbar({ title, subtitle }: TopbarProps) {
             className="btn-icon" 
             onClick={() => setIsMenuOpen(true)} 
             style={{ 
-              width: 40, height: 40, 
-              borderRadius: 12,
+              width: 44, height: 44, 
+              borderRadius: 999,
             }}
             aria-label="เปิดเมนู"
           >
@@ -104,8 +122,55 @@ export default function Topbar({ title, subtitle }: TopbarProps) {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(); }}
-              style={{ paddingLeft: 36, height: 40, fontSize: 14 }}
+              style={{ paddingLeft: 36, height: 40, fontSize: 14, borderRadius: 999 }}
             />
+          </div>
+        )}
+
+        {/* Local Mode Badge */}
+        {isLocalMode && (
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => setShowLocalTooltip(!showLocalTooltip)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: isMobile ? '6px 12px' : '8px 16px',
+                background: 'var(--surface-raised)', border: '1px solid var(--border)',
+                borderRadius: 999, cursor: 'pointer', fontSize: 12,
+                color: 'var(--text-primary)', fontWeight: 600,
+                transition: 'all 0.2s',
+              }}
+              title="โหมดส่วนตัว"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              {!isMobile && <span>โหมดส่วนตัว</span>}
+            </button>
+            {showLocalTooltip && (
+              <>
+                <div style={{ position: 'fixed', inset: 0, zIndex: 98 }} onClick={() => setShowLocalTooltip(false)} />
+                <div style={{
+                  position: 'absolute', top: '100%', right: 0, marginTop: 12,
+                  background: 'var(--surface-card)', border: '1px solid var(--border-strong)',
+                  borderRadius: 20, padding: 20, width: 280, zIndex: 99,
+                  boxShadow: '0 12px 32px rgba(0,0,0,0.06)',
+                }}>
+                  <p style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 12 }}>
+                    ข้อมูลเก็บในเครื่องนี้เท่านั้น<br />
+                    กดเพื่อเชื่อมต่อ Google และ sync ข้อมูล
+                  </p>
+                  <button
+                    className="btn-primary"
+                    onClick={() => { setShowLocalTooltip(false); signIn(); }}
+                    style={{ width: '100%', padding: '8px 12px', fontSize: 12, borderRadius: 8 }}
+                  >
+                    เชื่อมต่อ Google
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         )}
 
@@ -115,8 +180,8 @@ export default function Topbar({ title, subtitle }: TopbarProps) {
           onClick={handleToggleTheme} 
           title={theme === 'light' ? 'เปลี่ยนเป็นโหมดมืด' : 'เปลี่ยนเป็นโหมดสว่าง'} 
           style={{ 
-            width: 38, height: 38,
-            borderRadius: 12,
+            width: 40, height: 40,
+            borderRadius: 999,
             background: theme === 'dark' ? 'rgba(255,190,36,0.12)' : 'rgba(100,100,180,0.08)',
           }}
           aria-label="สลับธีม"
@@ -126,18 +191,18 @@ export default function Topbar({ title, subtitle }: TopbarProps) {
         
         {/* Quick add — desktop/tablet only */}
         {!isMobile && (
-          <button className="btn-primary" onClick={() => router.push('/notes?new=1')} style={{ padding: '6px 14px', fontSize: 13, borderRadius: 10, gap: 4, height: 36 }}>
-            <IconPlus size={15} /> สร้างโน้ต
+          <button className="btn-primary" onClick={() => router.push(`${basePath}/notes?new=1`)} style={{ padding: '0 20px', fontSize: 14, borderRadius: 999, gap: 6, height: 40 }}>
+            <IconPlus size={16} /> สร้างโน้ต
           </button>
         )}
 
         {/* Avatar */}
         {user && (
           <div style={{
-            width: 34, height: 34, borderRadius: 12, overflow: 'hidden',
+            width: 40, height: 40, borderRadius: 999, overflow: 'hidden',
             background: 'linear-gradient(135deg, var(--accent-soft), var(--violet-soft))', 
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0, border: '1px solid var(--border-strong)',
+            flexShrink: 0, border: '1.5px solid var(--border-strong)',
           }}>
             {user.photoURL ? (
               <img src={user.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -162,16 +227,16 @@ export default function Topbar({ title, subtitle }: TopbarProps) {
           boxShadow: '4px 0 24px rgba(0,0,0,0.15)',
         }}>
           <div style={{ padding: '24px 16px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)' }}>
+            <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>
               Study<span style={{ color: 'var(--accent)' }}>OS</span>
             </h2>
-            <button className="btn-icon" onClick={() => setIsMenuOpen(false)} style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--surface-raised)' }}>
-              <IconX size={18} />
+            <button className="btn-icon" onClick={() => setIsMenuOpen(false)} style={{ width: 44, height: 44, borderRadius: 999, background: 'var(--surface-raised)' }}>
+              <IconX size={20} />
             </button>
           </div>
           <nav style={{ flex: 1, overflowY: 'auto', padding: '0 8px' }}>
             {menuItems.map(item => {
-              const active = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
+              const active = (item.href === '/dashboard' || item.href === '/app') ? pathname === item.href : pathname.startsWith(item.href);
               return (
                 <Link 
                   key={item.href} href={item.href} 
@@ -189,7 +254,7 @@ export default function Topbar({ title, subtitle }: TopbarProps) {
             <button 
               className="btn-ghost" 
               onClick={handleToggleTheme}
-              style={{ width: '100%', justifyContent: 'flex-start', padding: '10px 16px', borderRadius: 12, gap: 12 }}
+              style={{ width: '100%', justifyContent: 'flex-start', padding: '12px 20px', borderRadius: 999, gap: 12 }}
             >
               {theme === 'light' ? <IconMoon size={18} style={{ color: 'var(--violet)' }} /> : <IconSun size={18} style={{ color: 'var(--amber)' }} />}
               <span>{theme === 'light' ? 'โหมดมืด' : 'โหมดสว่าง'}</span>

@@ -9,6 +9,7 @@ import {
   User,
   GoogleAuthProvider,
 } from 'firebase/auth';
+import { setGoogleToken, removeGoogleToken, verifyTier } from '@/app/actions/auth';
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
@@ -17,12 +18,6 @@ export function useAuth() {
   const [googleAccessToken, setGoogleAccessToken] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check if we have a token stored from a previous session
-    const storedToken = localStorage.getItem('googleAccessToken');
-    if (storedToken) {
-      setGoogleAccessToken(storedToken);
-    }
-    
     // Check local mode
     const localMode = localStorage.getItem('studyos_local_mode');
     if (localMode === 'true') {
@@ -45,12 +40,17 @@ export function useAuth() {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       
+      if (result.user.email) {
+        await verifyTier(result.user.email, result.user.uid);
+      }
+
       // Extract the Google Access Token
       const credential = GoogleAuthProvider.credentialFromResult(result);
       if (credential?.accessToken) {
         setGoogleAccessToken(credential.accessToken);
-        localStorage.setItem('googleAccessToken', credential.accessToken);
+        await setGoogleToken(credential.accessToken); // Securely store on server
       }
+
     } catch (error) {
       console.error('Sign in error:', error);
     }
@@ -65,7 +65,7 @@ export function useAuth() {
     try {
       await firebaseSignOut(auth);
       setGoogleAccessToken(null);
-      localStorage.removeItem('googleAccessToken');
+      await removeGoogleToken(); // Remove token from server
       localStorage.removeItem('studyos_local_mode');
       setIsLocalMode(false);
     } catch (error) {

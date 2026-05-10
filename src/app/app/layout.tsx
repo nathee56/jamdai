@@ -57,8 +57,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (!user && !isLocalMode) return null;
 
-  const basePathname = '/' + (pathname.split('/')[1] || '');
-  const pageInfo = pageTitles[basePathname] || pageTitles[pathname] || { title: 'Study OS' };
+  let key = pathname.replace(/^\/(dashboard|app)/, '');
+  if (key === '') key = '/';
+  
+  const basePathname = '/' + (key.split('/')[1] || '');
+  const pageInfo = pageTitles[basePathname] || pageTitles[key] || { title: 'Study OS' };
 
   return (
     <div className="app-layout" data-is-mobile={isMobile}>

@@ -31,21 +31,24 @@ export default function AIPage() {
 
   const todayClasses = useMemo(() => getTodayClasses(), [getTodayClasses]);
   const pendingTodos = todos.filter((t) => !t.done);
-
-  const systemPrompt = useMemo(() => buildSystemPrompt({
-    todos: pendingTodos.map((t) => `${t.title} (${t.subject || 'ไม่ระบุวิชา'}, ส่ง: ${t.dueDate?.toLocaleDateString('th-TH') || '-'})`).join(', '),
-    schedule: schedule.map((s) => `${s.name} ${s.day} ${s.startTime}-${s.endTime}`).join(', '),
-    notes: notes.slice(0, 5).map((n) => `${n.title}`).join(', '),
-  }) + '\n\nตอนท้ายสุดของคำตอบของคุณ ให้แนะนำคำถามถัดไปที่น่าสนใจ 3 ข้อเพื่อถามต่อ โดยคั่นด้วยเครื่องหมาย | และวางไว้บรรทัดสุดท้าย (ตัวอย่าง: แนะนำ: ข้อต่อไปคืออะไร | ขอรายละเอียดเพิ่ม | ยกตัวอย่าง)', [pendingTodos, schedule, notes]);
+  
+  const systemPrompt = useMemo(() => {
+    const basePrompt = buildSystemPrompt({
+      todos: pendingTodos.map((t) => `${t.title} (${t.subject || 'ไม่ระบุวิชา'}, ส่ง: ${t.dueDate?.toLocaleDateString('th-TH') || '-'})`).join(', '),
+      schedule: '',
+      notes: notes.slice(0, 5).map((n) => `${n.title}`).join(', '),
+    });
+    
+    return `${basePrompt}\n\nตอนท้ายสุดของคำตอบของคุณ ให้แนะนำคำถามถัดไปที่น่าสนใจ 3 ข้อเพื่อถามต่อ โดยคั่นด้วยเครื่องหมาย | และวางไว้บรรทัดสุดท้าย (ตัวอย่าง: แนะนำ: ข้อต่อไปคืออะไร | ขอรายละเอียดเพิ่ม | ยกตัวอย่าง)`;
+  }, [pendingTodos, notes]);
 
   const suggestions = useMemo(() => {
     const items = [];
     if (pendingTodos.length > 0) items.push(`งานอะไรส่งเร็วที่สุด?`);
-    if (todayClasses.length > 0) items.push(`คาบเรียนวันนี้มีอะไรบ้าง?`);
     if (notes.length > 0) items.push(`สรุปโน้ต ${notes[0]?.title} ให้หน่อย`);
-    items.push('วางแผนการเรียนให้หน่อย');
+    items.push('ช่วยสรุปเนื้อหาบทเรียนให้หน่อย');
     return items.slice(0, 4);
-  }, [pendingTodos, todayClasses, notes]);
+  }, [pendingTodos, notes]);
 
   const [showMobileHistory, setShowMobileHistory] = useState(false);
 
@@ -350,18 +353,6 @@ export default function AIPage() {
           {pendingTodos.slice(0, 3).map((t) => (
             <div key={t.id} style={{ padding: '3px 0', color: 'var(--text-secondary)', fontSize: 11 }}>
               {t.title}
-            </div>
-          ))}
-        </div>
-
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-            <IconCalendar size={14} style={{ color: 'var(--orange)' }} />
-            <span style={{ fontWeight: 600 }}>คาบวันนี้ ({todayClasses.length})</span>
-          </div>
-          {todayClasses.slice(0, 3).map((c) => (
-            <div key={c.id} style={{ padding: '3px 0', color: 'var(--text-secondary)', fontSize: 11 }}>
-              {c.name} ({c.startTime})
             </div>
           ))}
         </div>

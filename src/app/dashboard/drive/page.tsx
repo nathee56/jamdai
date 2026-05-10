@@ -21,7 +21,7 @@ export default function DrivePage() {
       setReadingFile(fileId);
       const content = await fetchFileContent(fileId, mimeType);
       sessionStorage.setItem('ai_file_context', JSON.stringify({ name: fileName, content }));
-      router.push('/ai?fromFile=true');
+      router.push('/dashboard/ai?fromFile=true');
     } catch (err: any) {
       alert(err.message || 'เกิดข้อผิดพลาดในการดึงข้อมูลไฟล์');
     } finally {

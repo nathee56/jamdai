@@ -88,7 +88,7 @@ export default function NoteDetailPage({ params }: { params: Promise<{ id: strin
   };
 
   const handleDelete = async () => {
-    if (confirm('ต้องการลบโน้ตนี้?')) { await deleteNote(id); router.push('/notes'); }
+    if (confirm('ต้องการลบโน้ตนี้?')) { await deleteNote(id); router.push('/dashboard/notes'); }
   };
 
   if (!note && !loaded) return <div className="skeleton" style={{ height: 400 }} />;
@@ -98,7 +98,7 @@ export default function NoteDetailPage({ params }: { params: Promise<{ id: strin
       {/* Editor */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center' }}>
-          <button className="btn-ghost" onClick={() => router.push('/notes')} style={{ padding: '8px 12px', fontSize: 13 }}>
+          <button className="btn-ghost" onClick={() => router.push('/dashboard/notes')} style={{ padding: '8px 12px', fontSize: 13 }}>
             <IconX size={14} /> กลับ
           </button>
           <input className="input" placeholder="วิชา" value={subject} onChange={(e) => handleSubjectChange(e.target.value)} style={{ width: 140 }} />

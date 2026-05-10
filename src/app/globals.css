@@ -249,16 +249,21 @@ p {
 .card {
   background: var(--surface-card);
   border: 1px solid var(--border);
-  border-radius: 18px;
+  border-radius: 24px;
   padding: 24px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04), 0 8px 32px rgba(0, 0, 0, 0.03);
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s;
 }
 
 .card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.04);
   border-color: var(--border-strong);
+}
+
+.card:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
 /* Button Primary */
@@ -373,21 +378,22 @@ p {
 /* Input */
 .input {
   width: 100%;
-  background: transparent;
+  background: var(--surface-card);
   border: 1px solid var(--border-strong);
-  border-radius: 12px;
-  padding: 0 16px;
-  height: 44px;
+  border-radius: 999px;
+  padding: 0 20px;
+  height: 48px;
   font-size: 15px;
   font-weight: 500;
   color: var(--text-primary);
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
 }
 
 .input:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-soft);
+  transform: scale(1.01);
 }
 
 .input::placeholder {
@@ -399,9 +405,9 @@ p {
   display: inline-flex;
   align-items: center;
   padding: 4px 12px;
-  border-radius: var(--radius-pill);
+  border-radius: 999px;
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.3px;
   text-transform: uppercase;
   white-space: nowrap;
@@ -435,17 +441,17 @@ p {
 /* Progress Bar */
 .progress-bar {
   width: 100%;
-  height: 6px;
-  background: var(--cream3);
-  border-radius: 3px;
+  height: 8px;
+  background: var(--surface-raised);
+  border-radius: 999px;
   overflow: hidden;
 }
 
 .progress-bar-fill {
   height: 100%;
-  background: var(--orange);
-  border-radius: 3px;
-  transition: width 0.5s ease;
+  background: var(--accent);
+  border-radius: 999px;
+  transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ===== LAYOUT ===== */
@@ -480,10 +486,8 @@ p {
 
 .topbar {
   height: var(--topbar-height);
-  background: rgba(240, 242, 248, 0.8);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border-bottom: 0.5px solid var(--border);
+  background: var(--surface-card);
+  border-bottom: 1px solid var(--border-strong);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -495,7 +499,7 @@ p {
 }
 
 [data-theme="dark"] .topbar {
-  background: rgba(12, 17, 29, 0.8);
+  background: var(--surface-card);
 }
 
 .page-content {
@@ -558,10 +562,8 @@ p {
   left: 0;
   right: 0;
   height: var(--mobile-nav-height);
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border-top: 1px solid var(--border);
+  background: var(--surface-card);
+  border-top: 1px solid var(--border-strong);
   z-index: 50;
   align-items: center;
   justify-content: space-around;
@@ -570,7 +572,7 @@ p {
 }
 
 [data-theme="dark"] .mobile-nav {
-  background: rgba(12, 17, 29, 0.85);
+  background: var(--surface-card);
 }
 
 .mobile-nav-item {
@@ -610,21 +612,21 @@ p {
   background: var(--accent);
   color: #FFFFFF;
   border: none;
-  border-radius: 50%;
+  border-radius: 999px;
   cursor: pointer;
   margin-top: -24px;
-  box-shadow: 0 8px 24px rgba(255, 90, 0, 0.35);
+  box-shadow: 0 8px 24px rgba(255, 90, 0, 0.25);
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s;
 }
 
 .fab:hover {
-  background: var(--accent);
-  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(255, 90, 0, 0.35);
 }
 
 .fab:active {
   transform: scale(0.92) translateY(2px);
-  box-shadow: 0 4px 12px rgba(255, 90, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(255, 90, 0, 0.15);
 }
 
 .fab svg {
@@ -638,9 +640,9 @@ p {
   bottom: calc(var(--mobile-nav-height) + 16px);
   left: 50%;
   transform: translateX(-50%) translateY(20px);
-  background: var(--surface);
-  border: 0.5px solid var(--border-strong);
-  border-radius: var(--radius-card);
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
   padding: 8px;
   min-width: 200px;
   z-index: 60;
@@ -1434,11 +1436,14 @@ button, a, input, .btn-primary, .btn-ghost {
 
   /* ===== MOBILE TODO CARD ===== */
   .mobile-todo-card {
-    background: var(--surface);
-    border: 0.5px solid var(--border-strong);
-    border-radius: 14px;
-    padding: 14px;
-    transition: opacity 0.2s;
+    background: var(--surface-card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 18px;
+    transition: opacity 0.2s, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s;
+  }
+  .mobile-todo-card:active {
+    transform: translateY(1px) scale(0.98);
   }
 
   /* ===== MOBILE SECTION LABELS ===== */
