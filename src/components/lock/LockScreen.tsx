@@ -11,43 +11,49 @@ export default function LockScreen({ children }: { children: React.ReactNode }) 
   const [error, setError] = useState('');
   const [showForgot, setShowForgot] = useState(false);
   const [verifying, setVerifying] = useState(false);
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const PIN_LENGTH = 6;
 
-  // Focus first input on mount
   useEffect(() => {
-    if (isLocked && hasPin && !loading) {
-      setTimeout(() => inputRefs.current[0]?.focus(), 100);
-    }
-  }, [isLocked, hasPin, loading]);
+    if (!isLocked || !hasPin || loading || verifying) return;
+    
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (/^[0-9]$/.test(e.key)) {
+        setPin(prev => {
+          if (prev.length >= PIN_LENGTH) return prev;
+          const newPin = prev + e.key;
+          if (newPin.length === PIN_LENGTH) {
+            setTimeout(() => handleSubmit(newPin), 50);
+          }
+          return newPin;
+        });
+        setError('');
+      } else if (e.key === 'Backspace') {
+        setPin(prev => prev.slice(0, -1));
+        setError('');
+      }
+    };
+    
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [isLocked, hasPin, loading, verifying]);
 
   if (loading) return null;
   if (!hasPin || !isLocked) return <>{children}</>;
 
-  const handleDigit = (index: number, value: string) => {
-    if (!/^\d*$/.test(value)) return;
-
-    const newPin = pin.substring(0, index) + value + pin.substring(index + 1);
-    setPin(newPin.substring(0, PIN_LENGTH));
+  const handleNumpadClick = (num: string) => {
+    if (verifying || pin.length >= PIN_LENGTH) return;
+    const newPin = pin + num;
+    setPin(newPin);
     setError('');
-
-    // Auto-advance to next input
-    if (value && index < PIN_LENGTH - 1) {
-      inputRefs.current[index + 1]?.focus();
-    }
-
-    // Auto-submit when all digits entered
-    if (newPin.length === PIN_LENGTH && value) {
-      handleSubmit(newPin.substring(0, PIN_LENGTH));
+    if (newPin.length === PIN_LENGTH) {
+      setTimeout(() => handleSubmit(newPin), 50);
     }
   };
 
-  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === 'Backspace' && !pin[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-      const newPin = pin.substring(0, index - 1) + pin.substring(index);
-      setPin(newPin);
-    }
+  const handleBackspaceClick = () => {
+    if (verifying || pin.length === 0) return;
+    setPin(pin.slice(0, -1));
+    setError('');
   };
 
   const handleSubmit = async (pinValue?: string) => {
@@ -62,7 +68,6 @@ export default function LockScreen({ children }: { children: React.ReactNode }) 
     if (!ok) {
       setError('รหัสผ่านไม่ถูกต้อง');
       setPin('');
-      setTimeout(() => inputRefs.current[0]?.focus(), 100);
     }
   };
 
@@ -111,35 +116,41 @@ export default function LockScreen({ children }: { children: React.ReactNode }) 
         </p>
 
         {/* PIN Dots */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginBottom: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginBottom: 32 }}>
           {Array.from({ length: PIN_LENGTH }).map((_, i) => (
-            <input
+            <div
               key={i}
-              ref={(el) => { inputRefs.current[i] = el; }}
-              type="password"
-              inputMode="numeric"
-              maxLength={1}
-              value={pin[i] || ''}
-              onChange={(e) => handleDigit(i, e.target.value)}
-              onKeyDown={(e) => handleKeyDown(i, e)}
               style={{
-                width: 48, height: 56,
-                borderRadius: 16,
-                border: `2px solid ${error ? 'var(--danger)' : pin[i] ? 'var(--accent)' : 'var(--border-strong)'}`,
-                background: 'var(--surface-card)',
-                textAlign: 'center',
-                fontSize: 24, fontWeight: 700,
-                color: 'var(--text-primary)',
-                outline: 'none',
-                transition: 'border-color 0.2s, transform 0.2s',
-                transform: pin[i] ? 'scale(1.05)' : 'scale(1)',
-                caretColor: 'transparent',
+                width: 16, height: 16,
+                borderRadius: '50%',
+                background: i < pin.length ? 'var(--accent)' : 'transparent',
+                border: `2px solid ${error ? 'var(--danger)' : i < pin.length ? 'var(--accent)' : 'var(--border-strong)'}`,
+                transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                transform: i < pin.length ? 'scale(1.1)' : 'scale(1)',
               }}
-              onFocus={(e) => e.target.style.borderColor = 'var(--accent)'}
-              onBlur={(e) => { if (!pin[i]) e.target.style.borderColor = 'var(--border-strong)'; }}
             />
           ))}
         </div>
+
+        {/* Keypad */}
+        {!showForgot && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px 24px', maxWidth: 280, margin: '0 auto 24px' }}>
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
+              <button key={num} onClick={() => handleNumpadClick(num.toString())} className="numpad-btn">
+                {num}
+              </button>
+            ))}
+            <div />
+            <button onClick={() => handleNumpadClick('0')} className="numpad-btn">0</button>
+            <button onClick={handleBackspaceClick} className="numpad-btn" style={{ background: 'transparent' }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path>
+                <line x1="18" y1="9" x2="12" y2="15"></line>
+                <line x1="12" y1="9" x2="18" y2="15"></line>
+              </svg>
+            </button>
+          </div>
+        )}
 
         {/* Error */}
         {error && (
@@ -208,13 +219,35 @@ export default function LockScreen({ children }: { children: React.ReactNode }) 
         )}
       </div>
 
-      {/* Shake animation */}
+      {/* Styles */}
       <style>{`
         @keyframes shake {
           0%, 100% { transform: translateX(0); }
           25% { transform: translateX(-8px); }
           50% { transform: translateX(8px); }
           75% { transform: translateX(-4px); }
+        }
+        .numpad-btn {
+          width: 72px;
+          height: 72px;
+          border-radius: 50%;
+          border: none;
+          background: var(--surface-card);
+          color: var(--text-primary);
+          font-size: 28px;
+          font-weight: 500;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s;
+          user-select: none;
+          -webkit-tap-highlight-color: transparent;
+          margin: 0 auto;
+        }
+        .numpad-btn:active {
+          background: var(--surface-raised);
+          transform: scale(0.92);
         }
       `}</style>
     </div>

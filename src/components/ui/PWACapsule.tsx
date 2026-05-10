@@ -4,9 +4,9 @@ import { usePWA } from '@/lib/hooks/usePWA';
 import { IconDownload } from './Icons';
 
 export default function PWACapsule() {
-  const { installPrompt, isInstalled, installApp } = usePWA();
+  const { isInstalled, installApp } = usePWA();
 
-  if (isInstalled || !installPrompt) return null;
+  if (isInstalled) return null;
 
   return (
     <div 
