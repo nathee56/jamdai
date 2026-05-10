@@ -500,6 +500,7 @@ p {
 
 [data-theme="dark"] .topbar {
   background: var(--surface-card);
+  border-bottom-color: transparent;
 }
 
 .page-content {
@@ -573,6 +574,7 @@ p {
 
 [data-theme="dark"] .mobile-nav {
   background: var(--surface-card);
+  border-top-color: transparent;
 }
 
 .mobile-nav-item {
