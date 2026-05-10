@@ -10,6 +10,7 @@ import MobileNav from '@/components/layout/MobileNav';
 import LockScreen from '@/components/lock/LockScreen';
 import PWAPrompt from '@/components/ui/PWAPrompt';
 import { useState, useEffect } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 
 const pageTitles: Record<string, { title: string; subtitle?: string }> = {
   '/': { title: 'Dashboard', subtitle: 'ภาพรวมวันนี้' },
@@ -112,7 +113,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="main-area">
         <Topbar title={pageInfo.title} subtitle={pageInfo.subtitle} />
         <main className="page-content">
-          {children}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={pathname}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
+              className="w-full"
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
         </main>
       </div>
       

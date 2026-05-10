@@ -13,6 +13,9 @@ import { useWorkspace } from '@/lib/hooks/useWorkspace';
 import { useAIAlert } from '@/lib/hooks/useAIAlert';
 import { useAIMemory } from '@/lib/hooks/useAIMemory';
 import { AnimatedProgressCircle } from '@/components/ui/AnimatedComponents';
+import EmptyState from '@/components/ui/EmptyState';
+import TaskProgressChart from '@/components/ui/TaskProgressChart';
+import { useRouter } from 'next/navigation';
 
 export default function DashboardPage() {
   const { todos } = useTodos();
@@ -23,6 +26,7 @@ export default function DashboardPage() {
   const todayClasses = useMemo(() => getTodayClasses(), [getTodayClasses]);
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const check = () => {
@@ -179,7 +183,15 @@ export default function DashboardPage() {
             <Link href="/dashboard/todo" style={{ fontSize: 12, color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }}>ดูทั้งหมด →</Link>
           </div>
           {todayTodos.length === 0 ? (
-            <p style={{ fontSize: 13, color: 'var(--text-hint)', textAlign: 'center', padding: 20 }}>ไม่มีงานค้าง</p>
+            <div className="py-2">
+              <EmptyState 
+                icon={<IconCheckSquare size={28} />}
+                title="ไม่มีงานค้าง"
+                description="ยอดเยี่ยมมาก! วันนี้คุณไม่มีงานที่ต้องทำแล้ว พักผ่อนให้เต็มที่"
+                actionLabel="เพิ่มงานใหม่"
+                onAction={() => router.push('/dashboard/todo?new=1')}
+              />
+            </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
               {todayTodos.map((todo) => (
@@ -196,6 +208,11 @@ export default function DashboardPage() {
                   )}
                 </div>
               ))}
+              
+              <div className="mt-6 border-t border-border pt-4">
+                <h4 className="text-xs font-semibold text-secondary mb-2 uppercase tracking-wider">สถิติงาน (To-Do)</h4>
+                <TaskProgressChart completed={completedThisWeek} pending={pendingTodos.length} />
+              </div>
             </div>
           )}
         </div>

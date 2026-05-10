@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useSchedule } from '@/lib/hooks/useSchedule';
 import { useTodos } from '@/lib/hooks/useTodos';
 import { IconPlayerPlay, IconPlayerPause, IconRefresh, IconSparkle, IconVolume, IconVolumeOff, IconX, IconCheckSquare } from '@/components/ui/Icons';
+import PomodoroChart from '@/components/ui/PomodoroChart';
 
 const AMBIENT_SOUNDS = [
   { id: 'none', name: 'ปิดเสียง', emoji: '🔇', url: '' },
@@ -342,6 +343,10 @@ export default function PomodoroPage() {
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--text-hint)' }}>เป้าหมาย</div>
               </div>
+            </div>
+            <div className="mt-6 border-t border-border pt-4">
+              <h4 className="text-xs font-semibold text-secondary mb-2 uppercase tracking-wider">สถิติ 7 วันย้อนหลัง</h4>
+              <PomodoroChart todayFocusMinutes={totalFocusToday} />
             </div>
           </div>
 
