@@ -270,8 +270,8 @@ export default function SettingsPage() {
         <h3 style={{ fontSize: 16, marginBottom: 16 }}>เกี่ยวกับ</h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, fontSize: 13, color: 'var(--text-secondary)' }}>
           <div>JamDai v1.0</div>
-          <div>Productivity Workspace สำหรับนักศึกษา</div>
-          <div>มหาวิทยาลัยราชภัฏนครสวรรค์</div>
+          <div>Productivity Workspace สำหรับทุกคน</div>
+          <div>จัดการชีวิตและการทำงานอย่างชาญฉลาด</div>
           <div style={{ color: 'var(--text-hint)', fontSize: 11, marginTop: 4 }}>
             สร้างโดย รพีพัฒน์ กวางทอง
           </div>

@@ -55,10 +55,10 @@ export default function LoginPage() {
           <img src="/logo.png" alt="JamDai" style={{ height: 96, objectFit: 'contain' }} />
         </div>
         <p style={{ fontSize: 15, color: 'var(--text-secondary)', marginBottom: 8, fontWeight: 500 }}>
-          Productivity Workspace สำหรับนักศึกษา
+          Productivity Workspace สำหรับทุกคน
         </p>
         <p style={{ fontSize: 13, color: 'var(--text-hint)', marginBottom: 40, fontWeight: 500 }}>
-          มหาวิทยาลัยราชภัฏนครสวรรค์
+          จัดการชีวิตและการทำงานอย่างชาญฉลาด
         </p>
 
         {/* Google Sign In */}
