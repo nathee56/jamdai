@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { IconSparkle, IconSend, IconSearch } from './Icons';
-import AIAlertCard from './AIAlertCard';
+import { IconSparkle, IconSend, IconSearch, IconChevronDown, IconClock } from './Icons';
 import { AIAlert } from '@/lib/hooks/useAIAlert';
 import { useRouter } from 'next/navigation';
 
@@ -15,6 +14,7 @@ interface AIBannerProps {
 
 export default function AIBanner({ pendingCount, alerts, loading, onDismiss }: AIBannerProps) {
   const [input, setInput] = useState('');
+  const [isExpanded, setIsExpanded] = useState(false);
   const router = useRouter();
 
   const handleAskAI = (e?: React.FormEvent) => {
@@ -28,19 +28,48 @@ export default function AIBanner({ pendingCount, alerts, loading, onDismiss }: A
 
   return (
     <div className="ai-banner-container animate-in">
-      <div className="ai-banner">
+      <div 
+        className={`ai-banner ${isExpanded ? 'expanded' : ''}`}
+        onClick={() => alerts.length > 0 && setIsExpanded(!isExpanded)}
+        style={{ cursor: alerts.length > 0 ? 'pointer' : 'default' }}
+      >
         <div className="ai-banner-content">
           <div className="ai-banner-header">
             <div className="ai-banner-icon">
               <IconSparkle size={24} />
             </div>
-            <div className="ai-banner-text">
+            <div className="ai-banner-text" style={{ flex: 1 }}>
               <h2>สรุปภาพรวมวันนี้</h2>
               <p>คุณมีงานค้าง {pendingCount} รายการ</p>
             </div>
+            {alerts.length > 0 && (
+              <div className={`expand-indicator ${isExpanded ? 'active' : ''}`}>
+                 <IconChevronDown size={24} />
+              </div>
+            )}
           </div>
 
-          <form onSubmit={handleAskAI} className="ai-banner-input-wrapper">
+          {isExpanded && alerts.length > 0 && (
+            <div className="ai-expanded-content">
+              <div className="ai-divider" />
+              <div className="ai-alerts-list">
+                {alerts.map((alert, i) => (
+                  <div key={i} className={`ai-alert-item urgency-${alert.urgency}`}>
+                    <div className="ai-alert-type-icon">
+                       {alert.type === 'deadline' ? <IconClock size={16} /> : <IconSparkle size={16} />}
+                    </div>
+                    <div className="ai-alert-msg-box">
+                      <div className="ai-alert-main-msg">{alert.message}</div>
+                      <div className="ai-alert-sub-details">{alert.details}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="ai-divider" />
+            </div>
+          )}
+
+          <form onSubmit={handleAskAI} className="ai-banner-input-wrapper" onClick={(e) => e.stopPropagation()}>
             <div className="ai-banner-input-inner">
               <IconSearch size={18} className="ai-input-icon" />
               <input 
@@ -58,11 +87,6 @@ export default function AIBanner({ pendingCount, alerts, loading, onDismiss }: A
         </div>
       </div>
 
-      {/* Upgraded System: Expandable Alerts integrated right below the banner */}
-      <div style={{ marginTop: 16 }}>
-        <AIAlertCard alerts={alerts} loading={loading} onDismiss={onDismiss} />
-      </div>
-
       <style jsx>{`
         .ai-banner-container {
           margin-bottom: 24px;
@@ -76,6 +100,12 @@ export default function AIBanner({ pendingCount, alerts, loading, onDismiss }: A
           position: relative;
           overflow: hidden;
           box-shadow: 0 12px 40px rgba(255, 107, 26, 0.25);
+          transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .ai-banner.expanded {
+           box-shadow: 0 20px 60px rgba(255, 107, 26, 0.35);
+           transform: scale(1.01);
         }
 
         [data-theme="dark"] .ai-banner {
@@ -137,8 +167,67 @@ export default function AIBanner({ pendingCount, alerts, loading, onDismiss }: A
           font-weight: 600;
         }
 
-        .ai-banner-input-wrapper {
-          width: 100%;
+        .expand-indicator {
+          transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+          opacity: 0.8;
+        }
+        .expand-indicator.active {
+          transform: rotate(180deg);
+        }
+
+        .ai-expanded-content {
+          margin-bottom: 24px;
+          animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        .ai-divider {
+          height: 1px;
+          background: rgba(255, 255, 255, 0.2);
+          margin: 16px 0;
+        }
+
+        .ai-alerts-list {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        .ai-alert-item {
+          display: flex;
+          gap: 12px;
+          align-items: flex-start;
+          background: rgba(255, 255, 255, 0.1);
+          padding: 14px;
+          border-radius: 16px;
+          border-left: 4px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .ai-alert-item.urgency-high {
+           background: rgba(255, 255, 255, 0.15);
+           border-left-color: #fff;
+        }
+
+        .ai-alert-type-icon {
+          width: 32px;
+          height: 32px;
+          border-radius: 10px;
+          background: rgba(255, 255, 255, 0.2);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .ai-alert-main-msg {
+          font-size: 15px;
+          font-weight: 700;
+          margin-bottom: 4px;
+        }
+
+        .ai-alert-sub-details {
+          font-size: 13px;
+          color: rgba(255, 255, 255, 0.85);
+          line-height: 1.5;
         }
 
         .ai-banner-input-inner {
@@ -195,29 +284,17 @@ export default function AIBanner({ pendingCount, alerts, loading, onDismiss }: A
           box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
-        .ai-banner-send:hover {
-          transform: scale(1.1) rotate(5deg);
-          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
         }
 
         @media (max-width: 768px) {
-          .ai-banner {
-            padding: 24px;
-            border-radius: 28px;
-          }
-          .ai-banner-header {
-            gap: 16px;
-          }
-          .ai-banner-icon {
-            width: 52px;
-            height: 52px;
-          }
-          .ai-banner-text h2 {
-            font-size: 20px;
-          }
-          .ai-banner-text p {
-            font-size: 14px;
-          }
+          .ai-banner { padding: 24px; border-radius: 28px; }
+          .ai-banner-header { gap: 16px; }
+          .ai-banner-icon { width: 52px; height: 52px; }
+          .ai-banner-text h2 { font-size: 20px; }
+          .ai-banner-text p { font-size: 14px; }
         }
       `}</style>
     </div>
