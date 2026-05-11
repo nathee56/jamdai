@@ -1779,8 +1779,23 @@ button, a, input, .btn-primary, .btn-ghost {
 }
 
 /* --- Page transition feel --- */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in-fade {
+  animation: pageIn 0.3s cubic-bezier(0.2, 0, 0.2, 1) both;
+}
+
 .page-content {
-  animation: fadeIn 0.25s ease both;
+  /* Simplified transition */
+  animation: fadeIn 0.1s ease both;
 }
 
 /* --- Reduce motion for accessibility --- */
