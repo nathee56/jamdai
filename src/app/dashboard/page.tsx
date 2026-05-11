@@ -367,6 +367,21 @@ export default function DashboardPage() {
           return null;
         })}
       </Reorder.Group>
+
+      <style jsx>{`
+        .animate-in {
+          font-family: 'Inter', 'Prompt', 'Sarabun', sans-serif;
+        }
+        :global(body) {
+          line-height: 1.5;
+        }
+        :global(.card) {
+          overflow: visible !important; /* Prevent Thai tone marks from being cut off */
+        }
+        :global(.pill), :global(button), :global(input), :global(h3), :global(div) {
+          line-height: 1.5;
+        }
+      `}</style>
     </div>
   );
 }

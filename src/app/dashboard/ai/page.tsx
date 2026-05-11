@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useChat, ChatMessage } from '@/lib/hooks/useChat';
@@ -36,6 +36,7 @@ export default function AIPage() {
   
   const [googleData, setGoogleData] = useState<string>('');
 
+  // Fetch Google Workspace context
   useEffect(() => {
     async function fetchGoogleData() {
       if (!user) return;
@@ -96,32 +97,8 @@ export default function AIPage() {
 
   const [showMobileHistory, setShowMobileHistory] = useState(false);
 
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [activeChat?.messages, sending]);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('fromFile') === 'true') {
-      const contextStr = sessionStorage.getItem('ai_file_context');
-      if (contextStr) {
-        const { name, content } = JSON.parse(contextStr);
-        setFileContext({ name, content });
-      }
-    }
-  }, []);
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setFileContext({ name: file.name, content: event.target?.result as string });
-    };
-    reader.readAsText(file);
-  };
-
-  const handleSend = async (text?: string) => {
+  // Message Handler with Hoisting Fix
+  const handleSend = useCallback(async (text?: string) => {
     const msg = text || input.trim();
     if (!msg && !fileContext) return;
 
@@ -147,6 +124,37 @@ export default function AIPage() {
       console.error(err);
       alert('AI ไม่ตอบสนอง โปรดตรวจสอบการเชื่อมต่ออินเทอร์เน็ตหรือ API Key ในระบบ');
     }
+  }, [input, fileContext, activeChat, model, createChat, sendMessage, systemPrompt]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [activeChat?.messages, sending]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('fromFile') === 'true') {
+      const contextStr = sessionStorage.getItem('ai_file_context');
+      if (contextStr) {
+        const { name, content } = JSON.parse(contextStr);
+        setFileContext({ name, content });
+      }
+    }
+    
+    const initialQuery = sessionStorage.getItem('ai_initial_query');
+    if (initialQuery) {
+      sessionStorage.removeItem('ai_initial_query');
+      handleSend(initialQuery);
+    }
+  }, [handleSend]);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setFileContext({ name: file.name, content: event.target?.result as string });
+    };
+    reader.readAsText(file);
   };
 
   const handleNewChat = async () => {
@@ -196,9 +204,9 @@ export default function AIPage() {
         </div>
       </div>
 
-      {/* Main Chat */}
+      {/* Main Chat Area */}
       <div className="ai-chat-viewport-inner">
-        {/* Chat Header */}
+        {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexShrink: 0 }}>
           <div style={{ display: 'flex', gap: 8 }}>
             <button className="btn-icon mobile-only" onClick={() => setShowMobileHistory(true)} 
@@ -237,14 +245,9 @@ export default function AIPage() {
               )}
             </div>
           </div>
-
           {user && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ textAlign: 'right' }} className="desktop-only">
-                <div style={{ fontSize: 12, fontWeight: 600 }}>{user.displayName}</div>
-                <div style={{ fontSize: 10, color: 'var(--text-hint)' }}>ผู้ใช้งานระบบ</div>
-              </div>
-              <div style={{ 
+               <div style={{ 
                 width: 32, height: 32, borderRadius: '50%', overflow: 'hidden', 
                 border: '2px solid var(--border-strong)', background: 'var(--surface-raised)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center'
@@ -263,11 +266,9 @@ export default function AIPage() {
         <div className="ai-chat-messages">
           {!activeChat || activeChat.messages.length === 0 ? (
             <div className="ai-empty-state">
-              <div className="ai-empty-icon">
-                <IconSparkle size={32} style={{ color: 'var(--accent)' }} />
-              </div>
-              <h3 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>JamDai AI พร้อมช่วยคุณ</h3>
-              <p style={{ fontSize: 14, color: 'var(--text-secondary)', maxWidth: 300, marginTop: -4 }}>ถามเกี่ยวกับงานที่ค้างอยู่ หรือให้ช่วยสรุปเนื้อหาบทเรียนได้ทันที</p>
+              <IconSparkle size={48} style={{ color: 'var(--accent)', marginBottom: 16 }} />
+              <h3 style={{ fontSize: 18, fontWeight: 800 }}>JamDai AI พร้อมช่วยแล้ว</h3>
+              <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 20 }}>ถามอะไรก็ได้เกี่ยวกับงานและการเรียนของคุณ</p>
               <div className="ai-suggestions">
                 {suggestions.map((s, i) => (
                   <button key={i} className="chip" onClick={() => handleSend(s)}>{s}</button>
@@ -288,24 +289,19 @@ export default function AIPage() {
               }
 
               return (
-                <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start', padding: '0 4px' }}>
+                <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start', padding: '0 4px', marginBottom: 12 }}>
                   <div className={msg.role === 'user' ? 'chat-bubble chat-bubble-user' : 'chat-bubble chat-bubble-ai'} 
-                    style={{ maxWidth: msg.role === 'user' ? '85%' : '95%', fontSize: 14 }}>
+                    style={{ maxWidth: msg.role === 'user' ? '85%' : '95%', fontSize: 14, wordBreak: 'break-word', lineHeight: 1.5, fontFamily: 'inherit' }}>
                     {msg.role === 'assistant' ? (
                       <div className="markdown-body">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {content}
-                        </ReactMarkdown>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
                       </div>
                     ) : content}
                   </div>
                   {choices.length > 0 && (
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8, marginLeft: msg.role === 'user' ? 0 : 8, justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8, justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
                       {choices.map((c, idx) => (
-                        <button key={idx} className="chip" onClick={() => handleSend(c)} 
-                          style={{ fontSize: 11, padding: '6px 12px', background: 'var(--surface-card)', border: '1px solid var(--border)' }}>
-                          {c}
-                        </button>
+                        <button key={idx} className="chip" onClick={() => handleSend(c)} style={{ fontSize: 11, background: 'var(--surface-card)', border: '1px solid var(--border)' }}>{c}</button>
                       ))}
                     </div>
                   )}
@@ -316,61 +312,38 @@ export default function AIPage() {
           {sending && (
             <div className="chat-bubble chat-bubble-ai" style={{ width: 'fit-content', marginLeft: 4 }}>
               <div className="typing-indicator">
-                <span className="typing-dot"></span>
-                <span className="typing-dot"></span>
-                <span className="typing-dot"></span>
+                <span className="typing-dot"></span><span className="typing-dot"></span><span className="typing-dot"></span>
               </div>
             </div>
           )}
           <div ref={chatEndRef} />
         </div>
 
-        {/* Input Area — STICKY at bottom */}
+        {/* Input Area */}
         <div className="ai-chat-input-area">
           {fileContext && (
-            <div className="ai-file-badge">
-              <IconPaperclip size={14} style={{ color: 'var(--accent)' }} />
-              <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                กำลังใช้ข้อมูลจาก: <strong>{fileContext.name}</strong>
-              </span>
-              <button className="btn-icon" onClick={() => setFileContext(null)} style={{ padding: 2, width: 28, height: 28 }}>
-                <IconX size={14} />
-              </button>
+            <div className="ai-file-badge" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 8, background: 'var(--accent-soft)', borderRadius: 12, marginBottom: 8, fontSize: 12 }}>
+               <IconPaperclip size={14} /> <span>ไฟล์: <strong>{fileContext.name}</strong></span>
+               <button className="btn-icon" onClick={() => setFileContext(null)}><IconX size={14} /></button>
             </div>
           )}
-          <div className="ai-chat-input-row">
-            <button 
-              className="btn-icon" 
-              onClick={() => fileInputRef.current?.click()}
-              style={{ width: 44, height: 44, borderRadius: 14, background: 'var(--surface-card)', border: '1px solid var(--border)' }}
-              title="แนบไฟล์ข้อความ"
-            >
+          <div className="ai-chat-input-row" style={{ display: 'flex', gap: 8 }}>
+            <button className="btn-icon" onClick={() => fileInputRef.current?.click()} style={{ width: 48, height: 48, borderRadius: 16, background: 'var(--surface-raised)' }}>
               <IconPaperclip size={20} />
             </button>
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              style={{ display: 'none' }} 
-              accept=".txt,.md,.js,.ts,.tsx,.html,.css,.json"
-              onChange={handleFileUpload} 
-            />
+            <input type="file" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileUpload} />
             <div style={{ flex: 1, position: 'relative' }}>
-              <input
-                className="input"
-                style={{ 
-                  height: 44, borderRadius: 14, 
-                  paddingRight: 50, 
-                  borderTopLeftRadius: fileContext ? 0 : 14,
-                  borderTopRightRadius: fileContext ? 0 : 14,
-                }}
-                placeholder={fileContext ? "ถาม AI เกี่ยวกับไฟล์นี้..." : "พิมพ์คำถามของคุณที่นี่..."}
+              <input 
+                className="input" 
+                style={{ width: '100%', height: 48, paddingRight: 50, borderRadius: 16, fontSize: 14 }}
+                placeholder="ถาม JamDai AI ได้ทุกเรื่อง..."
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                onChange={e => setInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleSend()}
               />
-              <button
-                className="btn-primary"
-                style={{ position: 'absolute', right: 4, top: 4, bottom: 4, width: 36, borderRadius: 10, padding: 0 }}
+              <button 
+                className="btn-primary" 
+                style={{ position: 'absolute', right: 4, top: 4, bottom: 4, width: 40, borderRadius: 12, padding: 0 }}
                 onClick={() => handleSend()}
                 disabled={sending}
               >
@@ -382,86 +355,39 @@ export default function AIPage() {
       </div>
 
       {/* Context Panel - Desktop */}
-      <div className="card" style={{ width: 240, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'auto', fontSize: 12 }}
-        id="context-panel">
-        <h4 style={{ fontSize: 13, marginBottom: 12 }}>บริบทปัจจุบัน</h4>
-
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-            <IconCheckSquare size={14} style={{ color: 'var(--accent)' }} />
-            <span style={{ fontWeight: 600 }}>งานค้าง ({pendingTodos.length})</span>
-          </div>
-          {pendingTodos.slice(0, 3).map((t) => (
-            <div key={t.id} style={{ padding: '3px 0', color: 'var(--text-secondary)', fontSize: 11 }}>
-              {t.title}
+      <div className="card desktop-only" style={{ width: 220, flexShrink: 0, padding: 20, borderRadius: 24, fontSize: 12 }}>
+         <h4 style={{ fontWeight: 800, marginBottom: 12, color: 'var(--text-hint)' }}>บริบทการเรียน</h4>
+         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div>
+              <div style={{ fontWeight: 700, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <IconCheckSquare size={14} /> งานค้าง ({pendingTodos.length})
+              </div>
+              {pendingTodos.slice(0, 3).map(t => <div key={t.id} style={{ opacity: 0.7, marginBottom: 2 }}>• {t.title}</div>)}
             </div>
-          ))}
-        </div>
-
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-            <IconCalendar size={14} style={{ color: 'var(--accent)' }} />
-            <span style={{ fontWeight: 600 }}>คาบวันนี้ ({todayClasses.length})</span>
-          </div>
-          {todayClasses.slice(0, 3).map((c) => (
-            <div key={c.id} style={{ padding: '3px 0', color: 'var(--text-secondary)', fontSize: 11 }}>
-              {c.name} ({c.startTime})
+            <div>
+              <div style={{ fontWeight: 700, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <IconCalendar size={14} /> ตารางเรียน ({todayClasses.length})
+              </div>
+              {todayClasses.slice(0, 3).map(c => <div key={c.id} style={{ opacity: 0.7, marginBottom: 2 }}>• {c.name}</div>)}
             </div>
-          ))}
-        </div>
-
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-            <IconFileText size={14} style={{ color: 'var(--accent)' }} />
-            <span style={{ fontWeight: 600 }}>โน้ตล่าสุด</span>
-          </div>
-          {notes.slice(0, 3).map((n) => (
-            <div key={n.id} style={{ padding: '3px 0', color: 'var(--text-secondary)', fontSize: 11 }}>
-              {n.title}
-            </div>
-          ))}
-        </div>
+         </div>
       </div>
 
-      {/* Mobile History Drawer */}
-      {showMobileHistory && (
-        <div className="modal-overlay open" onClick={() => setShowMobileHistory(false)} style={{ zIndex: 1000 }}>
-          <div className="modal" onClick={(e) => e.stopPropagation()} style={{ 
-            position: 'absolute', bottom: 0, left: 0, right: 0, 
-            maxWidth: 'none', borderRadius: '24px 24px 0 0', height: '70vh',
-            padding: 20, display: 'flex', flexDirection: 'column'
-          }}>
-            <div className="modal-header">
-              <h3>ประวัติการแชท</h3>
-              <button className="btn-icon" onClick={() => setShowMobileHistory(false)}><IconX size={20} /></button>
-            </div>
-            <button className="btn-primary" onClick={handleNewChat} style={{ marginBottom: 16, width: '100%' }}>
-              <IconPlus size={16} /> เริ่มแชทใหม่
-            </button>
-            <div style={{ flex: 1, overflowY: 'auto' }}>
-              {chats.length === 0 && <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-hint)' }}>ไม่มีประวัติการแชท</div>}
-              {chats.map((chat) => (
-                <button
-                  key={chat.id}
-                  className={`nav-item ${activeChat?.id === chat.id ? 'active' : ''}`}
-                  onClick={() => { setActiveChat(chat); setShowMobileHistory(false); }}
-                  style={{ width: '100%', padding: '12px', margin: '4px 0', textAlign: 'left', borderRadius: 12 }}>
-                  <IconMessageCircle size={16} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 500 }}>{chat.title}</div>
-                    <div style={{ fontSize: 11, opacity: 0.6 }}>{chat.createdAt.toLocaleDateString('th-TH')}</div>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
       <style jsx>{`
-        @media (max-width: 768px) {
-          #chat-history-panel, #context-panel { display: none !important; }
+        .ai-chat-viewport { 
+          max-width: 1200px; margin: 0 auto; padding: 16px; 
+          font-family: 'Inter', 'Prompt', sans-serif;
         }
+        .ai-chat-viewport-inner { flex: 1; min-width: 0; display: flex; flexDirection: column; height: calc(100vh - 120px); }
+        .ai-chat-messages { flex: 1; overflow-y: auto; padding: 16px 0; display: flex; flexDirection: column; gap: 4px; }
+        .ai-chat-input-area { padding-top: 12px; }
+        .chat-bubble { padding: 12px 16px; border-radius: 18px; line-height: 1.5; }
+        .chat-bubble-user { background: var(--accent); color: white; border-bottom-right-radius: 4px; }
+        .chat-bubble-ai { background: var(--surface-card); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+        .typing-dot { width: 6px; height: 6px; background: var(--text-hint); border-radius: 50%; display: inline-block; margin: 0 2px; animation: bounce 1.4s infinite ease-in-out; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
       `}</style>
     </div>
   );

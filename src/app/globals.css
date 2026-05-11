@@ -213,10 +213,11 @@ html {
 }
 
 body {
-  font-family: var(--font-sarabun), -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-family: 'Inter', 'Prompt', 'Sarabun', -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   background: var(--surface-base);
   color: var(--text-primary);
   line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background 0.3s, color 0.2s;
@@ -227,9 +228,9 @@ body {
 
 /* ===== TYPOGRAPHY ===== */
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-sarabun), sans-serif;
-  font-weight: 650;
-  line-height: 1.3;
+  font-family: 'Inter', 'Prompt', 'Sarabun', sans-serif;
+  font-weight: 700;
+  line-height: 1.4;
   color: var(--text-primary);
   letter-spacing: -0.01em;
 }
@@ -278,6 +279,7 @@ p {
   padding: 24px;
   box-shadow: none;
   transition: border-color 0.2s ease;
+  overflow: visible; /* Prevent Thai tone marks from being cut off */
 }
 
 .card:hover {
