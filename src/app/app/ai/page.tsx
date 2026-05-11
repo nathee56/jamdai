@@ -116,7 +116,7 @@ export default function AIPage() {
   };
 
   return (
-    <div className="animate-fade-in" style={{ display: 'flex', gap: 16, height: 'calc(100vh - 120px)' }}>
+    <div className="ai-chat-viewport animate-fade-in" style={{ display: 'flex', gap: 16 }}>
       {/* Chat History - Desktop */}
       <div className="card" style={{ width: 240, flexShrink: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
         id="chat-history-panel">
@@ -154,40 +154,43 @@ export default function AIPage() {
       </div>
 
       {/* Main Chat */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <div className="ai-chat-viewport-inner">
         {/* Chat Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexShrink: 0 }}>
           <div style={{ display: 'flex', gap: 8 }}>
             <button className="btn-icon mobile-only" onClick={() => setShowMobileHistory(true)} 
-              style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+              style={{ background: 'var(--surface-card)', border: '1px solid var(--border)', borderRadius: 12 }}>
               <IconMessageCircle size={20} />
             </button>
             <div style={{ position: 'relative' }}>
-              <button className="btn-ghost" onClick={() => setShowModels(!showModels)} style={{ fontSize: 12, padding: '6px 12px' }}>
+              <button className="btn-ghost" onClick={() => setShowModels(!showModels)} style={{ fontSize: 12, padding: '6px 12px', borderRadius: 12 }}>
                 <IconCpu size={14} /> {model === 'auto' ? 'Auto (AI แนะนำ)' : MODEL_INFO[model].name}
                 <IconChevronDown size={14} style={{ transform: showModels ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
               </button>
               {showModels && (
-                <div className="card" style={{ position: 'absolute', top: '100%', left: 0, marginTop: 4, padding: 4, zIndex: 20, minWidth: 280 }}>
-                  <button className={`nav-item ${model === 'auto' ? 'active' : ''}`}
-                    onClick={() => { setModel('auto'); setShowModels(false); }}
-                    style={{ width: '100%', margin: '2px 0', padding: '8px 12px' }}>
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--orange)' }}>Auto (AI แนะนำ)</div>
-                      <div style={{ fontSize: 11, color: 'var(--text-hint)' }}>ให้ระบบเลือกโมเดลที่เหมาะกับคำถามให้อัตโนมัติ</div>
-                    </div>
-                  </button>
-                  {(Object.keys(MODELS) as ModelKey[]).map((key) => (
-                    <button key={key} className={`nav-item ${model === key ? 'active' : ''}`}
-                      onClick={() => { setModel(key); setShowModels(false); }}
+                <>
+                  <div style={{ position: 'fixed', inset: 0, zIndex: 19 }} onClick={() => setShowModels(false)} />
+                  <div className="card" style={{ position: 'absolute', top: '100%', left: 0, marginTop: 4, padding: 4, zIndex: 20, minWidth: 280 }}>
+                    <button className={`nav-item ${model === 'auto' ? 'active' : ''}`}
+                      onClick={() => { setModel('auto'); setShowModels(false); }}
                       style={{ width: '100%', margin: '2px 0', padding: '8px 12px' }}>
                       <div>
-                        <div style={{ fontSize: 13, fontWeight: 500 }}>{MODEL_INFO[key].name}</div>
-                        <div style={{ fontSize: 11, color: 'var(--text-hint)' }}>{MODEL_INFO[key].description}</div>
+                        <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--orange)' }}>Auto (AI แนะนำ)</div>
+                        <div style={{ fontSize: 11, color: 'var(--text-hint)' }}>ให้ระบบเลือกโมเดลที่เหมาะกับคำถามให้อัตโนมัติ</div>
                       </div>
                     </button>
-                  ))}
-                </div>
+                    {(Object.keys(MODELS) as ModelKey[]).map((key) => (
+                      <button key={key} className={`nav-item ${model === key ? 'active' : ''}`}
+                        onClick={() => { setModel(key); setShowModels(false); }}
+                        style={{ width: '100%', margin: '2px 0', padding: '8px 12px' }}>
+                        <div>
+                          <div style={{ fontSize: 13, fontWeight: 500 }}>{MODEL_INFO[key].name}</div>
+                          <div style={{ fontSize: 11, color: 'var(--text-hint)' }}>{MODEL_INFO[key].description}</div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </>
               )}
             </div>
           </div>
@@ -200,13 +203,13 @@ export default function AIPage() {
               </div>
               <div style={{ 
                 width: 32, height: 32, borderRadius: '50%', overflow: 'hidden', 
-                border: '2px solid var(--orange-light)', background: 'var(--cream3)',
+                border: '2px solid var(--border-strong)', background: 'var(--surface-raised)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center'
               }}>
                 {user.photoURL ? (
                   <img src={user.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
-                  <IconUser size={18} style={{ color: 'var(--orange)' }} />
+                  <IconUser size={18} style={{ color: 'var(--accent)' }} />
                 )}
               </div>
             </div>
@@ -214,20 +217,17 @@ export default function AIPage() {
         </div>
 
         {/* Messages */}
-        <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 14, paddingBottom: 16 }}>
+        <div className="ai-chat-messages">
           {!activeChat || activeChat.messages.length === 0 ? (
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, textAlign: 'center' }}>
-              <div style={{ 
-                width: 64, height: 64, borderRadius: 20, background: 'var(--orange-light)', 
-                display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8 
-              }}>
-                <IconSparkle size={32} style={{ color: 'var(--orange)' }} />
+            <div className="ai-empty-state">
+              <div className="ai-empty-icon">
+                <IconSparkle size={32} style={{ color: 'var(--accent)' }} />
               </div>
               <h3 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>JamDai AI พร้อมช่วยคุณ</h3>
-              <p style={{ fontSize: 14, color: 'var(--text-secondary)', maxWidth: 300 }}>ถามเกี่ยวกับงานที่ค้างอยู่ หรือให้ช่วยสรุปเนื้อหาบทเรียนได้ทันที</p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', maxWidth: 500, padding: '0 20px' }}>
+              <p style={{ fontSize: 14, color: 'var(--text-secondary)', maxWidth: 300, marginTop: -4 }}>ถามเกี่ยวกับงานที่ค้างอยู่ หรือให้ช่วยสรุปเนื้อหาบทเรียนได้ทันที</p>
+              <div className="ai-suggestions">
                 {suggestions.map((s, i) => (
-                  <button key={i} className="chip" onClick={() => handleSend(s)} style={{ fontSize: 12, padding: '8px 16px' }}>{s}</button>
+                  <button key={i} className="chip" onClick={() => handleSend(s)}>{s}</button>
                 ))}
               </div>
             </div>
@@ -260,7 +260,7 @@ export default function AIPage() {
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8, marginLeft: msg.role === 'user' ? 0 : 8, justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
                       {choices.map((c, idx) => (
                         <button key={idx} className="chip" onClick={() => handleSend(c)} 
-                          style={{ fontSize: 11, padding: '6px 12px', background: 'var(--surface)', border: '1px solid var(--border)' }}>
+                          style={{ fontSize: 11, padding: '6px 12px', background: 'var(--surface-card)', border: '1px solid var(--border)' }}>
                           {c}
                         </button>
                       ))}
@@ -282,28 +282,24 @@ export default function AIPage() {
           <div ref={chatEndRef} />
         </div>
 
-        {/* Input Area */}
-        <div style={{ padding: '16px 0 0' }}>
+        {/* Input Area — STICKY at bottom */}
+        <div className="ai-chat-input-area">
           {fileContext && (
-            <div style={{ 
-              background: 'var(--cream3)', padding: '8px 12px', borderRadius: '10px 10px 0 0',
-              display: 'flex', alignItems: 'center', gap: 10, border: '1px solid var(--border)',
-              borderBottom: 'none', fontSize: 12, marginBottom: -1
-            }}>
-              <IconPaperclip size={14} style={{ color: 'var(--orange)' }} />
+            <div className="ai-file-badge">
+              <IconPaperclip size={14} style={{ color: 'var(--accent)' }} />
               <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 กำลังใช้ข้อมูลจาก: <strong>{fileContext.name}</strong>
               </span>
-              <button className="btn-icon" onClick={() => setFileContext(null)} style={{ padding: 2 }}>
+              <button className="btn-icon" onClick={() => setFileContext(null)} style={{ padding: 2, width: 28, height: 28 }}>
                 <IconX size={14} />
               </button>
             </div>
           )}
-          <div style={{ display: 'flex', gap: 8, position: 'relative' }}>
+          <div className="ai-chat-input-row">
             <button 
               className="btn-icon" 
               onClick={() => fileInputRef.current?.click()}
-              style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--surface)', border: '1px solid var(--border)' }}
+              style={{ width: 44, height: 44, borderRadius: 14, background: 'var(--surface-card)', border: '1px solid var(--border)' }}
               title="แนบไฟล์ข้อความ"
             >
               <IconPaperclip size={20} />
@@ -315,28 +311,29 @@ export default function AIPage() {
               accept=".txt,.md,.js,.ts,.tsx,.html,.css,.json"
               onChange={handleFileUpload} 
             />
-            <input
-              className="input"
-              style={{ 
-                height: 44, borderRadius: 12, 
-                paddingRight: 50, 
-                borderTopLeftRadius: fileContext ? 0 : 12,
-                borderTopRightRadius: fileContext ? 0 : 12,
-                background: 'var(--surface)'
-              }}
-              placeholder={fileContext ? "ถาม AI เกี่ยวกับไฟล์นี้..." : "พิมพ์คำถามของคุณที่นี่..."}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            />
-            <button
-              className="btn-primary"
-              style={{ position: 'absolute', right: 4, top: 4, bottom: 4, width: 36, borderRadius: 10, padding: 0 }}
-              onClick={() => handleSend()}
-              disabled={sending}
-            >
-              {sending ? '...' : '→'}
-            </button>
+            <div style={{ flex: 1, position: 'relative' }}>
+              <input
+                className="input"
+                style={{ 
+                  height: 44, borderRadius: 14, 
+                  paddingRight: 50, 
+                  borderTopLeftRadius: fileContext ? 0 : 14,
+                  borderTopRightRadius: fileContext ? 0 : 14,
+                }}
+                placeholder={fileContext ? "ถาม AI เกี่ยวกับไฟล์นี้..." : "พิมพ์คำถามของคุณที่นี่..."}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+              />
+              <button
+                className="btn-primary"
+                style={{ position: 'absolute', right: 4, top: 4, bottom: 4, width: 36, borderRadius: 10, padding: 0 }}
+                onClick={() => handleSend()}
+                disabled={sending}
+              >
+                {sending ? '...' : '→'}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -348,7 +345,7 @@ export default function AIPage() {
 
         <div style={{ marginBottom: 14 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-            <IconCheckSquare size={14} style={{ color: 'var(--orange)' }} />
+            <IconCheckSquare size={14} style={{ color: 'var(--accent)' }} />
             <span style={{ fontWeight: 600 }}>งานค้าง ({pendingTodos.length})</span>
           </div>
           {pendingTodos.slice(0, 3).map((t) => (
@@ -360,7 +357,7 @@ export default function AIPage() {
 
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-            <IconFileText size={14} style={{ color: 'var(--orange)' }} />
+            <IconFileText size={14} style={{ color: 'var(--accent)' }} />
             <span style={{ fontWeight: 600 }}>โน้ตล่าสุด</span>
           </div>
           {notes.slice(0, 3).map((n) => (

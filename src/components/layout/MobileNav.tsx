@@ -23,6 +23,9 @@ export default function MobileNav() {
 
   return (
     <>
+      {/* Progressive Blur Overlay for Mobile */}
+      <div className="mobile-bottom-blur" />
+
       {/* FAB Action Sheet Backdrop */}
       {showSheet && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 55, background: 'rgba(0,0,0,0.3)' }} onClick={() => setShowSheet(false)}>

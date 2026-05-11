@@ -11,17 +11,17 @@ export default function PWACapsule() {
   return (
     <div 
       onClick={installApp}
-      className="card animate-in"
+      className="animate-in"
       style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-        padding: '12px 20px', borderRadius: 999,
-        background: 'var(--orange-light)', border: '1px dashed var(--orange)',
+        display: 'inline-flex', alignItems: 'center', gap: 6,
+        padding: '6px 14px', borderRadius: 999,
+        background: 'var(--surface-raised)', border: '1px solid var(--border)',
         cursor: 'pointer', marginBottom: 16, transition: 'all 0.2s',
       }}
     >
-      <IconDownload size={16} style={{ color: 'var(--orange)' }} />
-      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--orange)' }}>
-        ติดตั้งแอป JamDai ลงเครื่องเพื่อประสบการณ์ที่ดีที่สุด
+      <IconDownload size={14} style={{ color: 'var(--text-secondary)' }} />
+      <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-secondary)' }}>
+        ติดตั้งแอป JamDai ลงเครื่อง
       </span>
     </div>
   );

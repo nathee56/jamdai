@@ -82,48 +82,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <LockScreen>
     <div className="app-layout" data-is-mobile={isMobile}>
-      {/* 
-        CRITICAL UI FIX: This ensures mobile layout is forced correctly 
-        even if CSS bundle is cached or has specificity issues.
-      */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        @media screen and (max-width: 768px) {
-          .sidebar { display: none !important; }
-          .main-area { 
-            margin-left: 0 !important; 
-            padding-left: 0 !important;
-            width: 100vw !important;
-            flex: 1 !important;
-          }
-          .app-layout { 
-            display: flex !important; 
-            flex-direction: column !important;
-          }
-          .page-content {
-            width: 100% !important;
-            max-width: 100vw !important;
-            padding: 16px !important;
-          }
-          /* FORCE MOBILE NAV BLUR FIX */
-          .mobile-nav {
-            background-color: rgba(255, 255, 255, 0.6) !important;
-            -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
-            backdrop-filter: blur(24px) saturate(180%) !important;
-            -webkit-transform: translate3d(0, 0, 0) !important;
-            transform: translate3d(0, 0, 0) !important;
-          }
-          [data-theme="dark"] .mobile-nav {
-            background-color: rgba(20, 25, 35, 0.65) !important;
-          }
-        }
-      ` }} />
+      {/* Mobile overrides are handled in globals.css */}
 
 
       <Sidebar />
       
       <div className="main-area">
         <Topbar title={pageInfo.title} subtitle={pageInfo.subtitle} />
-        <main className="page-content">
+        <main className={`page-content ${isMobile ? 'scroll-fade-mask' : ''}`}>
           <div key={pathname} className="animate-in-fade w-full">
             {children}
           </div>

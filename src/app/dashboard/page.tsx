@@ -3,6 +3,7 @@
 import { useTodos } from '@/lib/hooks/useTodos';
 import { useSchedule } from '@/lib/hooks/useSchedule';
 import { useNotes } from '@/lib/hooks/useNotes';
+import { useAuth } from '@/lib/hooks/useAuth';
 import { IconCheckSquare, IconCalendar, IconFileText, IconSparkle, IconSend, IconExternalLink, IconClock, IconCloud } from '@/components/ui/Icons';
 import PWACapsule from '@/components/ui/PWACapsule';
 import AIAlertCard from '@/components/ui/AIAlertCard';
@@ -24,10 +25,12 @@ export default function DashboardPage() {
   const { getTodayClasses } = useSchedule();
   const { notes } = useNotes();
   const { getMemoryPrompt } = useAIMemory();
-  const [aiQuery, setAiQuery] = useState('');
+  const { user, isLocalMode } = useAuth();
   const todayClasses = useMemo(() => getTodayClasses(), [getTodayClasses]);
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
+  const [localName, setLocalName] = useState('');
+  const [isEditingName, setIsEditingName] = useState(false);
   const router = useRouter();
 
   const defaultWidgetOrder = ['todos', 'schedule', 'notes', 'drive', 'links', 'progress'];
@@ -60,6 +63,30 @@ export default function DashboardPage() {
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
   }, []);
+
+  useEffect(() => {
+    if (isLocalMode) {
+      const savedName = localStorage.getItem('studyos_local_name');
+      if (savedName) setLocalName(savedName);
+      else setIsEditingName(true);
+    }
+  }, [isLocalMode]);
+
+  const saveLocalName = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (localName.trim()) {
+      localStorage.setItem('studyos_local_name', localName.trim());
+      setIsEditingName(false);
+    }
+  };
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'สวัสดีตอนเช้า';
+    if (hour < 17) return 'สวัสดีตอนบ่าย';
+    if (hour < 20) return 'สวัสดีตอนเย็น';
+    return 'สวัสดีตอนค่ำ';
+  };
 
   const { files: workspaceFiles, loading: wsLoading, error: wsError, fetchRecentFiles } = useWorkspace();
   useEffect(() => { fetchRecentFiles(); }, [fetchRecentFiles]);
@@ -102,94 +129,78 @@ export default function DashboardPage() {
       <PWACapsule />
       <AIAlertCard alerts={aiAlerts} loading={alertsLoading} onDismiss={dismissAlert} />
       <WhatsNewPopup />
-      {/* AI Summary Banner — vibrant gradient */}
-      <div className="card ai-banner" style={{ 
-        marginBottom: isMobile ? 16 : 18, 
-        padding: isMobile ? 18 : 24,
-        display: isMobile ? 'block' : 'flex',
-        gap: 0,
-        position: 'relative',
-        zIndex: 1,
-      }}>
-        {/* Left: AI content */}
-        <div style={{ flex: 1, minWidth: 0, position: 'relative', zIndex: 2 }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: isMobile ? 14 : 16 }}>
-            <div style={{ 
-              width: 38, height: 38, borderRadius: 14, 
-              background: 'rgba(255,255,255,0.15)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
-              flexShrink: 0,
-            }}>
-              <IconSparkle size={18} />
-            </div>
-            <div style={{ flex: 1 }}>
-              <h3 style={{ fontSize: 16, marginBottom: 4, fontWeight: 600, color: '#fff' }}>สรุปภาพรวมวันนี้</h3>
-              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)', lineHeight: 1.7 }}>
-                {pendingTodos.length > 0 ? (
-                  <span>
-                    คุณมีงานค้าง <strong style={{ color: '#fff' }}>{pendingTodos.length} รายการ</strong>
-                    {todayClasses.length > 0 && ` และคาบเรียน ${todayClasses.length} คาบวันนี้`}
-                  </span>
-                ) : (
-                  <span>ยอดเยี่ยม! วันนี้ไม่มีงานค้าง พร้อมลุยวันใหม่</span>
-                )}
-              </div>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <input className="input" placeholder="ถาม AI เกี่ยวกับงานของคุณ..." value={aiQuery} onChange={(e) => setAiQuery(e.target.value)} style={{ flex: 1, height: 44, fontSize: 14 }} />
-            <Link href={aiQuery ? `/dashboard/ai?q=${encodeURIComponent(aiQuery)}` : '/dashboard/ai'}>
-              <button className="btn-primary" style={{ height: 44, width: 44, padding: 0, background: 'rgba(255,255,255,0.25)', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><IconSend size={18} /></button>
-            </Link>
-          </div>
+      {/* Clean Welcome Header */}
+      <div style={{ marginBottom: 24, padding: '0 4px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+        <div>
+          {isEditingName ? (
+            <form onSubmit={saveLocalName} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0, color: 'var(--text-primary)' }} className="apple-intel-text">
+                {getGreeting()},
+              </h1>
+              <input
+                autoFocus
+                type="text"
+                value={localName}
+                onChange={(e) => setLocalName(e.target.value)}
+                onBlur={() => localName.trim() && saveLocalName()}
+                placeholder="ชื่อของคุณ..."
+                style={{
+                  fontSize: 20, fontWeight: 700, background: 'transparent', border: 'none', borderBottom: '2px solid var(--accent)',
+                  color: 'var(--text-primary)', outline: 'none', padding: '0 4px', width: 140
+                }}
+              />
+            </form>
+          ) : (
+            <h1 
+              style={{ fontSize: 22, fontWeight: 700, marginBottom: 4, cursor: isLocalMode ? 'pointer' : 'default' }} 
+              className="apple-intel-text"
+              onClick={() => isLocalMode && setIsEditingName(true)}
+              title={isLocalMode ? 'แตะเพื่อเปลี่ยนชื่อ' : ''}
+            >
+              {getGreeting()}, {user?.displayName ? user.displayName.split(' ')[0] : (localName || 'คุณ')}
+            </h1>
+          )}
+          <p style={{ color: 'var(--text-secondary)', fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
+            {pendingTodos.length > 0 || todayClasses.length > 0 ? (
+              <>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent)', display: 'inline-block' }} />
+                {pendingTodos.length > 0 ? `คุณมีงานค้าง ${pendingTodos.length} รายการ` : ''}
+                {pendingTodos.length > 0 && todayClasses.length > 0 ? ' และ ' : ''}
+                {todayClasses.length > 0 ? `คาบเรียน ${todayClasses.length} คาบวันนี้` : ''}
+              </>
+            ) : (
+              <>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--teal)', display: 'inline-block' }} />
+                ยอดเยี่ยม! วันนี้ไม่มีงานค้าง พร้อมลุยวันใหม่
+              </>
+            )}
+          </p>
         </div>
-
-        {/* Right: Inline stats — desktop/tablet only */}
-        {!isMobile && (
-          <div style={{ display: 'flex', borderLeft: '1px solid rgba(255,255,255,0.2)', marginLeft: 24, paddingLeft: 24, gap: 0, flexShrink: 0, position: 'relative', zIndex: 2 }}>
-            {[
-              { icon: IconCheckSquare, value: pendingTodos.length, label: 'งานค้าง' },
-              { icon: IconCalendar, value: todayClasses.length, label: 'คาบวันนี้' },
-              { 
-                isProgress: true, 
-                value: `${progressPct}%`, 
-                label: 'ความคืบหน้า' 
-              },
-            ].map((stat, i) => (
-              <div key={i} style={{ textAlign: 'center', padding: '0 18px', borderLeft: i > 0 ? '1px solid rgba(255,255,255,0.12)' : 'none', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                {stat.isProgress ? (
-                  <div style={{ marginBottom: 4 }}>
-                    <AnimatedProgressCircle progress={progressPct} size={18} strokeWidth={2} />
-                  </div>
-                ) : stat.icon ? (
-                  <stat.icon size={14} style={{ color: 'rgba(255,255,255,0.7)', marginBottom: 4 }} />
-                ) : null}
-                <div style={{ fontSize: 22, fontWeight: 600, color: '#fff' }}>{stat.value}</div>
-                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.6)', whiteSpace: 'nowrap' }}>{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
-      {/* Mobile stats grid — colorful stat cards */}
-      {isMobile && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, marginBottom: 16 }} className="stagger-children">
-          {statItems.map((stat, i) => (
-            <div key={i} className="card stat-card mobile-card" style={{ textAlign: 'center', padding: 14, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              {stat.isProgress ? (
-                <div style={{ marginBottom: 4 }}>
-                  <AnimatedProgressCircle progress={progressPct} size={24} strokeWidth={3} />
-                </div>
-              ) : stat.icon ? (
-                <stat.icon size={18} style={{ color: stat.color, marginBottom: 4 }} />
-              ) : null}
-              <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>{stat.value}</div>
-              <div style={{ fontSize: 11, color: 'var(--text-hint)' }}>{stat.label}</div>
-            </div>
-          ))}
-        </div>
-      )}
+      {/* Unified Stats Grid */}
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', 
+        gap: 10, 
+        marginBottom: 24 
+      }} className="stagger-children">
+        {statItems.map((stat, i) => (
+          <div key={i} className="card stat-card mobile-card" style={{ textAlign: 'center', padding: '16px 14px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            {stat.isProgress ? (
+              <div style={{ marginBottom: 6 }}>
+                <AnimatedProgressCircle progress={progressPct} size={28} strokeWidth={3} />
+              </div>
+            ) : stat.icon ? (
+              <div style={{ width: 32, height: 32, borderRadius: 10, background: `color-mix(in srgb, ${stat.color} 15%, transparent)`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 6 }}>
+                <stat.icon size={18} style={{ color: stat.color }} />
+              </div>
+            ) : null}
+            <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 2 }}>{stat.value}</div>
+            <div style={{ fontSize: 11, color: 'var(--text-hint)' }}>{stat.label}</div>
+          </div>
+        ))}
+      </div>
 
       {/* Content Grid using Reorder */}
       <Reorder.Group 
