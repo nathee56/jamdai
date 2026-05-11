@@ -3,8 +3,9 @@
 import { useState, useEffect, useCallback } from 'react';
 
 export interface AIAlert {
-  type: 'deadline' | 'class' | 'reminder';
+  type: 'deadline' | 'class' | 'reminder' | 'insight';
   message: string;
+  details: string;
   urgency: 'high' | 'medium' | 'low';
 }
 
