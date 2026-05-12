@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useNotes } from '@/lib/hooks/useNotes';
 import { useRouter } from 'next/navigation';
-import { IconPlus, IconSearch, IconFileText } from '@/components/ui/Icons';
+import { IconPlus, IconSearch, IconFileText, IconCamera } from '@/components/ui/Icons';
 
 const NOTE_COLORS = [
   { name: 'ขาว', value: 'var(--note-white)' }, { name: 'ครีม', value: 'var(--note-cream)' },
