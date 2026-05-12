@@ -265,24 +265,8 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <div className="settings-section-title">การเชื่อมต่อ & บริการ</div>
+      <div className="settings-section-title">การแจ้งเตือน & ระบบ</div>
       <div className="settings-group">
-        <div className="settings-item">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(66, 133, 244, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <IconCloud size={20} style={{ color: '#4285F4' }} />
-            </div>
-            <div>
-              <div className="settings-title">Google Workspace</div>
-              <div className="settings-desc" style={{ color: googleAccessToken ? 'var(--success)' : 'var(--text-hint)' }}>
-                {googleAccessToken ? 'เชื่อมต่อแล้ว' : 'ยังไม่ได้เชื่อมต่อ'}
-              </div>
-            </div>
-          </div>
-          <button className="btn-secondary" onClick={signIn} style={{ fontSize: 13, padding: '6px 14px', height: 'auto' }}>
-            {googleAccessToken ? 'อัปเดต' : 'เชื่อมต่อ'}
-          </button>
-        </div>
 
         {notifSupported && (
           <div className="settings-item">
@@ -383,9 +367,34 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <div style={{ marginTop: 32, marginBottom: 40 }}>
-        <button className="btn-secondary" onClick={signOut} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', color: 'var(--danger)', height: 48, borderRadius: 16 }}>
-          <IconLogOut size={16} /> ออกจากระบบ
+      <div style={{ marginTop: 32, marginBottom: 40, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {user ? (
+          <>
+            <button className="btn-secondary" onClick={signIn} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', height: 48, borderRadius: 16 }}>
+              <IconUser size={16} /> เปลี่ยนบัญชีผู้ใช้
+            </button>
+            <button className="btn-secondary" onClick={signOut} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', color: 'var(--text-secondary)', height: 48, borderRadius: 16 }}>
+              <IconLogOut size={16} /> ออกจากระบบ
+            </button>
+          </>
+        ) : (
+          <button className="btn-primary" onClick={() => { signOut(); }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', height: 48, borderRadius: 16 }}>
+            <IconUser size={16} /> เข้าสู่ระบบ
+          </button>
+        )}
+        
+        <button 
+          className="btn-secondary" 
+          onClick={() => { 
+            if(confirm('คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลทั้งหมด? การกระทำนี้ไม่สามารถย้อนกลับได้')) { 
+              localStorage.clear();
+              sessionStorage.clear();
+              signOut(); 
+            } 
+          }} 
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', color: 'var(--danger)', height: 48, borderRadius: 16, marginTop: 12, border: '1px solid var(--danger-light)', background: 'var(--danger-soft)' }}
+        >
+          <IconAlertCircle size={16} /> ลบข้อมูลทั้งหมด
         </button>
       </div>
     </div>

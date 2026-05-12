@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       title: title || 'JamDai',
       body: body || 'คุณมีการแจ้งเตือนใหม่',
       icon: '/icon-192.png',
-      url: url || '/dashboard',
+      url: url || '/app',
     });
 
     await webPush.sendNotification(pushSubscription, payload);

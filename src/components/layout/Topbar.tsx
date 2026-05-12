@@ -7,7 +7,7 @@ import { useTheme } from '@/lib/hooks/useTheme';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { 
   IconSun, IconMoon, IconPlus, IconMenu, IconX, IconSearch,
-  IconCalendar, IconFileText, IconCpu, IconSettings, IconHome, IconCheckSquare, IconMessageCircle
+  IconCalendar, IconFileText, IconCpu, IconSettings, IconHome, IconCheckSquare, IconMessageCircle, IconCamera
 } from '@/components/ui/Icons';
 
 interface TopbarProps {
@@ -32,30 +32,15 @@ export default function Topbar({ title, subtitle }: TopbarProps) {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const isNU = !isLocalMode && pathname.startsWith('/dashboard');
-  const basePath = isNU ? '/dashboard' : '/app';
+  const basePath = '/app';
 
-  const localMenuItems = [
+  const menuItems = [
     { href: '/app', label: 'หน้าแรก', icon: IconHome },
-    { href: '/app/todo', label: 'งาน', icon: IconCheckSquare },
-    { href: '/app/notes', label: 'โน้ต', icon: IconFileText },
-    { href: '/app/ai', label: 'AI', icon: IconMessageCircle },
-    { href: '/app/settings', label: 'ตั้งค่า', icon: IconSettings },
-  ];
-
-  const menuItems = isLocalMode ? localMenuItems : isNU ? [
-    { href: '/dashboard', label: 'Dashboard', icon: IconHome },
-    { href: '/dashboard/todo', label: 'To-Do List', icon: IconCheckSquare },
-    { href: '/dashboard/schedule', label: 'ตารางเรียน', icon: IconCalendar },
-    { href: '/dashboard/notes', label: 'โน้ตทั้งหมด', icon: IconFileText },
-    { href: '/dashboard/ai', label: 'AI Assistant', icon: IconMessageCircle },
-    { href: '/dashboard/ai-tools', label: 'AI Tools', icon: IconCpu },
-    { href: '/dashboard/settings', label: 'ตั้งค่า', icon: IconSettings },
-  ] : [
-    { href: '/app', label: 'หน้าแรก', icon: IconHome },
-    { href: '/app/todo', label: 'งาน', icon: IconCheckSquare },
-    { href: '/app/notes', label: 'โน้ต', icon: IconFileText },
-    { href: '/app/ai', label: 'AI', icon: IconMessageCircle },
+    { href: '/app/todo', label: 'งาน (To-Do)', icon: IconCheckSquare },
+    { href: '/app/schedule', label: 'ตารางเรียน', icon: IconCalendar },
+    { href: '/app/notes', label: 'โน้ต (Notes)', icon: IconFileText },
+    { href: '/app/scan', label: 'สแกนโน้ต (AI)', icon: IconCamera },
+    { href: '/app/ai', label: 'AI Assistant', icon: IconMessageCircle },
     { href: '/app/settings', label: 'ตั้งค่า', icon: IconSettings },
   ];
 
@@ -80,12 +65,14 @@ export default function Topbar({ title, subtitle }: TopbarProps) {
             className="btn-icon" 
             onClick={() => setIsMenuOpen(true)} 
             style={{ 
-              width: 44, height: 44, 
+              width: 40, height: 40, 
               borderRadius: 999,
+              background: 'var(--surface-raised)',
+              border: '1px solid var(--border)',
             }}
             aria-label="เปิดเมนู"
           >
-            <IconMenu size={20} />
+            <IconMenu size={18} />
           </button>
         )}
         {!isMobile && (
@@ -216,58 +203,105 @@ export default function Topbar({ title, subtitle }: TopbarProps) {
       </div>
     </header>
 
-    {/* Mobile Drawer */}
+    {/* Mobile Drawer — Premium Rounded Design */}
     {isMenuOpen && (
       <div className="mobile-only" style={{ position: 'fixed', inset: 0, zIndex: 9999 }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)' }} onClick={() => setIsMenuOpen(false)} />
+        {/* Backdrop */}
+        <div 
+          style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }} 
+          onClick={() => setIsMenuOpen(false)} 
+        />
+        {/* Drawer Panel */}
         <div style={{ 
-          position: 'absolute', top: 0, bottom: 0, left: 0, width: '280px', 
-          background: 'var(--surface-card)', borderRight: '1px solid var(--border)',
-          display: 'flex', flexDirection: 'column', animation: 'slideRight 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-          boxShadow: '4px 0 24px rgba(0,0,0,0.15)',
+          position: 'absolute', top: 12, bottom: 12, left: 12, width: 'calc(100vw - 80px)', maxWidth: 300,
+          background: 'color-mix(in srgb, var(--surface-card) 85%, transparent)',
+          backdropFilter: 'blur(40px) saturate(200%)', WebkitBackdropFilter: 'blur(40px) saturate(200%)',
+          border: '1px solid rgba(255,255,255,0.18)',
+          borderRadius: 28,
+          display: 'flex', flexDirection: 'column',
+          animation: 'drawerSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+          boxShadow: '0 24px 80px rgba(0,0,0,0.18), 0 8px 24px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.25)',
+          overflow: 'hidden',
         }}>
-          <div style={{ padding: '24px 16px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
-              <img src="/logo.png" alt="JamDai" style={{ height: 40, objectFit: 'contain' }} />
+          {/* Header */}
+          <div style={{ padding: '24px 20px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <img src="/logo.png" alt="JamDai" style={{ height: 36, objectFit: 'contain' }} />
               <span style={{ 
-                background: 'var(--orange)', 
-                color: 'white', 
-                fontSize: '8px', 
-                padding: '1px 5px', 
-                borderRadius: '8px',
-                fontWeight: 700,
-                marginLeft: 4,
-                boxShadow: '0 2px 4px rgba(255, 107, 26, 0.2)',
-                transform: 'rotate(5deg)'
+                background: 'linear-gradient(135deg, var(--accent), #FF9A5C)',
+                color: 'white', fontSize: 8, padding: '2px 7px', 
+                borderRadius: 99, fontWeight: 700, letterSpacing: '0.5px',
               }}>BETA</span>
             </div>
-            <button className="btn-icon" onClick={() => setIsMenuOpen(false)} style={{ width: 44, height: 44, borderRadius: 999, background: 'var(--surface-raised)' }}>
-              <IconX size={20} />
+            <button onClick={() => setIsMenuOpen(false)} style={{ 
+              width: 38, height: 38, borderRadius: 99, border: 'none', cursor: 'pointer',
+              background: 'var(--surface-raised)', color: 'var(--text-secondary)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'all 0.2s',
+            }}>
+              <IconX size={18} />
             </button>
           </div>
-          <nav style={{ flex: 1, overflowY: 'auto', padding: '0 8px' }}>
-            {menuItems.map(item => {
-              const active = (item.href === '/dashboard' || item.href === '/app') ? pathname === item.href : pathname.startsWith(item.href);
+
+          {/* Nav Items */}
+          <nav style={{ flex: 1, overflowY: 'auto', padding: '4px 12px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {menuItems.map((item, i) => {
+              const active = (item.href === '/app') ? pathname === item.href : pathname.startsWith(item.href);
+              const colors = [
+                { bg: 'var(--accent-soft)', fg: 'var(--accent)' },
+                { bg: 'var(--sky-soft)', fg: 'var(--sky)' },
+                { bg: 'var(--violet-soft)', fg: 'var(--violet)' },
+                { bg: 'var(--teal-soft)', fg: 'var(--teal)' },
+                { bg: 'var(--rose-soft)', fg: 'var(--rose)' },
+                { bg: 'var(--amber-soft)', fg: 'var(--amber)' },
+              ];
+              const c = colors[i % colors.length];
               return (
                 <Link 
                   key={item.href} href={item.href} 
                   onClick={() => setIsMenuOpen(false)}
-                  className={`nav-item ${active ? 'active' : ''}`}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    padding: '10px 14px', borderRadius: 16, textDecoration: 'none',
+                    background: active ? c.bg : 'transparent',
+                    color: active ? c.fg : 'var(--text-secondary)',
+                    fontWeight: active ? 600 : 400, fontSize: 14,
+                    transition: 'all 0.2s ease',
+                  }}
                 >
-                  <item.icon size={18} />
-                  <span style={{ fontSize: 14 }}>{item.label}</span>
+                  <div style={{
+                    width: 36, height: 36, borderRadius: 12,
+                    background: active ? c.fg : c.bg,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    transition: 'all 0.2s',
+                  }}>
+                    <item.icon size={18} style={{ color: active ? 'white' : c.fg }} />
+                  </div>
+                  <span>{item.label}</span>
                 </Link>
               );
             })}
           </nav>
-          {/* Theme toggle in drawer */}
-          <div style={{ padding: 16, borderTop: '1px solid var(--border)' }}>
+
+          {/* Footer */}
+          <div style={{ padding: '12px 12px 16px', borderTop: '1px solid var(--border)' }}>
             <button 
-              className="btn-ghost" 
               onClick={handleToggleTheme}
-              style={{ width: '100%', justifyContent: 'flex-start', padding: '12px 20px', borderRadius: 999, gap: 12 }}
+              style={{ 
+                width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+                padding: '10px 14px', borderRadius: 16, border: 'none', cursor: 'pointer',
+                background: 'var(--surface-raised)', color: 'var(--text-secondary)',
+                fontSize: 14, fontWeight: 500, fontFamily: 'inherit',
+                transition: 'all 0.2s',
+              }}
             >
-              {theme === 'light' ? <IconMoon size={18} style={{ color: 'var(--violet)' }} /> : <IconSun size={18} style={{ color: 'var(--amber)' }} />}
+              <div style={{
+                width: 36, height: 36, borderRadius: 12,
+                background: theme === 'dark' ? 'rgba(251,191,36,0.15)' : 'rgba(139,92,246,0.12)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                {theme === 'light' ? <IconMoon size={18} style={{ color: 'var(--violet)' }} /> : <IconSun size={18} style={{ color: 'var(--amber)' }} />}
+              </div>
               <span>{theme === 'light' ? 'โหมดมืด' : 'โหมดสว่าง'}</span>
             </button>
           </div>

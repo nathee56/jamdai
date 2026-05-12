@@ -444,3 +444,21 @@ export const IconAlertCircle = ({ size, ...props }: IconProps) => (
     <line x1="12" y1="16" x2="12.01" y2="16" />
   </svg>
 );
+
+export const IconCamera = ({ size, ...props }: IconProps) => (
+  <svg {...defaultProps(size)} {...props}>
+    <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
+    <circle cx="12" cy="13" r="4" />
+  </svg>
+);
+
+export const IconPhoto = IconImage;
+
+export const IconSparkles = IconSparkle;
+
+export const IconLoader2 = ({ size, ...props }: IconProps) => (
+  <svg {...defaultProps(size)} {...props}>
+    <path d="M21 12a9 9 0 11-6.219-8.56" />
+  </svg>
+);
+

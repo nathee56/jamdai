@@ -7,15 +7,12 @@ import {
   signInWithPopup,
   signOut as firebaseSignOut,
   User,
-  GoogleAuthProvider,
 } from 'firebase/auth';
-import { setGoogleToken, removeGoogleToken, verifyTier } from '@/app/actions/auth';
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [isLocalMode, setIsLocalMode] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
-  const [googleAccessToken, setGoogleAccessToken] = useState<string | null>(null);
 
   useEffect(() => {
     // Check local mode
@@ -38,21 +35,10 @@ export function useAuth() {
 
   const signIn = useCallback(async () => {
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      
-      if (result.user.email) {
-        await verifyTier(result.user.email, result.user.uid);
-      }
-
-      // Extract the Google Access Token
-      const credential = GoogleAuthProvider.credentialFromResult(result);
-      if (credential?.accessToken) {
-        setGoogleAccessToken(credential.accessToken);
-        await setGoogleToken(credential.accessToken); // Securely store on server
-      }
-
+      await signInWithPopup(auth, googleProvider);
     } catch (error) {
       console.error('Sign in error:', error);
+      throw error;
     }
   }, []);
 
@@ -64,8 +50,6 @@ export function useAuth() {
   const signOut = useCallback(async () => {
     try {
       await firebaseSignOut(auth);
-      setGoogleAccessToken(null);
-      await removeGoogleToken(); // Remove token from server
       
       // Clear all application state to prevent leaks
       localStorage.removeItem('studyos_local_mode');
@@ -80,5 +64,5 @@ export function useAuth() {
     }
   }, []);
 
-  return { user, isLocalMode, loading, signIn, loginLocalMode, signOut, googleAccessToken };
+  return { user, isLocalMode, loading, signIn, loginLocalMode, signOut };
 }

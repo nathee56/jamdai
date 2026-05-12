@@ -72,6 +72,13 @@ export default function NotesPage() {
               style={subjectFilter === s ? { borderColor: 'var(--accent)', color: 'var(--accent)', background: 'var(--accent-soft)', fontWeight: 600, padding: '10px 18px' } : { padding: '10px 18px', background: 'var(--surface-card)' }}>{s}</button>
           ))}
         </div>
+        <button 
+          className="btn-ghost" 
+          onClick={() => router.push('/app/scan')} 
+          style={{ height: 48, padding: '0 20px', background: 'var(--surface-card)', border: '1px solid var(--border-strong)', borderRadius: 999 }}
+        >
+          <IconCamera size={18} /> สแกนรูปภาพ
+        </button>
         <button className="btn-primary" onClick={handleNew} style={{ height: 48, padding: '0 24px', whiteSpace: 'nowrap' }}>
           <IconPlus size={18} /> สร้างโน้ต
         </button>

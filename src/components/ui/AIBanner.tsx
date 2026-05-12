@@ -123,7 +123,7 @@ export default function AIBanner({ pendingCount, todos, todayClasses, notes, mem
           style={{ cursor: hasExpandableContent ? 'pointer' : 'default' }}
         >
           <div className="ai-banner-icon">
-            <IconSparkle size={24} />
+            <img src="/ai-logo.png" alt="AI" style={{ width: 28, height: 28, borderRadius: 8, objectFit: 'cover' }} />
           </div>
           <div className="ai-banner-text" style={{ flex: 1 }}>
             <h2>{headerText.title}</h2>
@@ -251,7 +251,7 @@ export default function AIBanner({ pendingCount, todos, todayClasses, notes, mem
         )}
 
         {/* AI Input */}
-        <form onSubmit={handleAskAI} className="ai-banner-input-wrapper" onClick={(e) => e.stopPropagation()}>
+        <form onSubmit={handleAskAI} className="ai-banner-input-wrapper" onClick={(e) => e.stopPropagation()} style={{ pointerEvents: 'auto', position: 'relative', zIndex: 10 }}>
           <div className="ai-banner-input-inner">
             <IconSearch size={16} className="ai-input-icon" />
             <input
@@ -260,8 +260,9 @@ export default function AIBanner({ pendingCount, todos, todayClasses, notes, mem
               value={input}
               onChange={(e) => setInput(e.target.value)}
               className="ai-banner-input"
+              style={{ pointerEvents: 'auto' }}
             />
-            <button type="submit" className="ai-banner-send" disabled={isTyping}>
+            <button type="submit" className="ai-banner-send" disabled={isTyping} style={{ pointerEvents: 'auto' }}>
               {isTyping ? '...' : <IconSend size={16} />}
             </button>
           </div>
@@ -273,9 +274,9 @@ export default function AIBanner({ pendingCount, todos, todayClasses, notes, mem
 
         .ai-banner {
           background: linear-gradient(135deg, #FF6B1A 0%, #FF9A5C 100%);
-          border-radius: 32px; padding: 26px; color: white;
+          border-radius: 24px; padding: 22px; color: white;
           position: relative; overflow: hidden;
-          box-shadow: 0 12px 40px rgba(255, 107, 26, 0.25);
+          box-shadow: 0 8px 30px rgba(255, 107, 26, 0.2);
           transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
         [data-theme="dark"] .ai-banner {
@@ -283,7 +284,7 @@ export default function AIBanner({ pendingCount, todos, todayClasses, notes, mem
           box-shadow: 0 12px 50px rgba(0,0,0,0.3);
           border: 1px solid rgba(255,255,255,0.1);
         }
-        .ai-banner.expanded { box-shadow: 0 20px 60px rgba(255, 107, 26, 0.35); }
+        .ai-banner.expanded { box-shadow: 0 16px 40px rgba(255, 107, 26, 0.25); }
         .ai-banner::before {
           content: ''; position: absolute; top: -15%; right: -10%;
           width: 320px; height: 320px;
@@ -292,21 +293,22 @@ export default function AIBanner({ pendingCount, todos, todayClasses, notes, mem
         }
 
         .ai-banner-header {
-          display: flex; align-items: center; gap: 16px;
-          margin-bottom: 20px; position: relative; z-index: 1;
+          display: flex; align-items: center; gap: 14px;
+          margin-bottom: 16px; position: relative; z-index: 1;
         }
         .ai-banner-icon {
-          width: 56px; height: 56px; background: rgba(255,255,255,0.25);
+          width: 48px; height: 48px; background: rgba(255,255,255,0.25);
           backdrop-filter: blur(10px); border-radius: 50%;
           display: flex; align-items: center; justify-content: center;
           color: white; box-shadow: 0 8px 20px rgba(0,0,0,0.08); flex-shrink: 0;
         }
+        .ai-banner-icon :global(svg) { width: 20px; height: 20px; }
         .ai-banner-text h2 {
-          font-size: 22px; font-weight: 800; color: white;
+          font-size: 18px; font-weight: 800; color: white;
           margin: 0; letter-spacing: -0.02em;
         }
         .ai-banner-text p {
-          font-size: 15px; color: rgba(255,255,255,0.95);
+          font-size: 13px; color: rgba(255,255,255,0.95);
           margin: 4px 0 0; font-weight: 600;
         }
         .expand-indicator {
@@ -316,24 +318,25 @@ export default function AIBanner({ pendingCount, todos, todayClasses, notes, mem
 
         .ai-expanded-content {
           position: relative; z-index: 1;
-          margin-bottom: 20px;
+          margin-bottom: 16px;
           animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
-        .ai-divider { height: 1px; background: rgba(255,255,255,0.2); margin: 16px 0; }
+        .ai-divider { height: 1px; background: rgba(255,255,255,0.2); margin: 12px 0; }
 
         /* Detail Sections */
-        .ai-detail-section { margin-bottom: 16px; }
+        .ai-detail-section { margin-bottom: 12px; }
         .ai-detail-title {
-          display: flex; align-items: center; gap: 8px;
-          font-size: 14px; font-weight: 700; margin-bottom: 10px; opacity: 0.95;
+          display: flex; align-items: center; gap: 6px;
+          font-size: 13px; font-weight: 700; margin-bottom: 8px; opacity: 0.95;
         }
+        .ai-detail-title :global(svg) { width: 14px; height: 14px; }
         .ai-detail-list {
           display: flex; flex-direction: column; gap: 6px;
         }
         .ai-detail-item {
           display: flex; align-items: center; gap: 10px;
-          background: rgba(255,255,255,0.12); padding: 10px 14px;
-          border-radius: 16px; font-size: 13px;
+          background: rgba(255,255,255,0.12); padding: 8px 12px;
+          border-radius: 12px; font-size: 13px;
         }
         .ai-detail-item-dot {
           width: 8px; height: 8px; border-radius: 50%;
@@ -358,14 +361,14 @@ export default function AIBanner({ pendingCount, todos, todayClasses, notes, mem
         /* AI Chat Thread */
         .ai-chat-thread {
           display: flex; flex-direction: column; gap: 8px;
-          max-height: 300px; overflow-y: auto;
+          max-height: 250px; overflow-y: auto;
         }
         .ai-thread-msg { display: flex; }
         .ai-thread-msg.user { justify-content: flex-end; }
         .ai-thread-msg.assistant { justify-content: flex-start; }
         .ai-thread-bubble {
-          max-width: 85%; padding: 10px 14px; border-radius: 16px;
-          font-size: 13px; line-height: 1.6;
+          max-width: 85%; padding: 8px 12px; border-radius: 14px;
+          font-size: 13px; line-height: 1.5;
         }
         .ai-thread-msg.user .ai-thread-bubble {
           background: rgba(255,255,255,0.3); border: 1px solid rgba(255,255,255,0.4);
@@ -374,7 +377,7 @@ export default function AIBanner({ pendingCount, todos, todayClasses, notes, mem
           background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2);
         }
 
-        .markdown-body-banner { font-size: 13px; line-height: 1.6; }
+        .markdown-body-banner { font-size: 13px; line-height: 1.5; }
         .markdown-body-banner p { margin: 0 0 8px; }
         .markdown-body-banner p:last-child { margin: 0; }
         .markdown-body-banner ul, .markdown-body-banner ol { margin: 4px 0; padding-left: 20px; }
@@ -388,42 +391,43 @@ export default function AIBanner({ pendingCount, todos, todayClasses, notes, mem
         /* Alerts */
         .ai-alerts-list { display: flex; flex-direction: column; gap: 8px; }
         .ai-alert-item {
-          display: flex; gap: 12px; align-items: flex-start;
-          background: rgba(255,255,255,0.1); padding: 12px;
-          border-radius: 16px; border-left: 4px solid rgba(255,255,255,0.4);
+          display: flex; gap: 10px; align-items: flex-start;
+          background: rgba(255,255,255,0.1); padding: 10px;
+          border-radius: 12px; border-left: 3px solid rgba(255,255,255,0.4);
         }
         .ai-alert-item.urgency-high {
           background: rgba(255,255,255,0.15); border-left-color: #fff;
         }
         .ai-alert-type-icon {
-          width: 30px; height: 30px; border-radius: 10px;
+          width: 24px; height: 24px; border-radius: 8px;
           background: rgba(255,255,255,0.2);
           display: flex; align-items: center; justify-content: center; flex-shrink: 0;
         }
-        .ai-alert-main-msg { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
-        .ai-alert-sub-details { font-size: 12px; color: rgba(255,255,255,0.85); line-height: 1.4; }
+        .ai-alert-type-icon :global(svg) { width: 14px; height: 14px; }
+        .ai-alert-main-msg { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+        .ai-alert-sub-details { font-size: 11px; color: rgba(255,255,255,0.85); line-height: 1.4; }
 
         /* Input */
-        .ai-banner-input-wrapper { position: relative; z-index: 1; max-width: 420px; }
+        .ai-banner-input-wrapper { position: relative; z-index: 1; max-width: 400px; }
         .ai-banner-input-inner {
           position: relative; display: flex; align-items: center;
           background: rgba(255,255,255,0.2); backdrop-filter: blur(15px);
           border: 1px solid rgba(255,255,255,0.3); border-radius: 999px;
-          padding: 4px 4px 4px 16px;
+          padding: 3px 3px 3px 14px;
           transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .ai-banner-input-inner:focus-within {
           background: rgba(255,255,255,0.3);
           border-color: rgba(255,255,255,0.5); transform: translateY(-1px);
         }
-        .ai-input-icon { color: rgba(255,255,255,0.8); margin-right: 10px; }
+        .ai-input-icon { color: rgba(255,255,255,0.8); margin-right: 8px; }
         .ai-banner-input {
           flex: 1; background: transparent; border: none; color: white;
-          font-size: 14px; font-weight: 600; outline: none; height: 36px;
+          font-size: 13px; font-weight: 600; outline: none; height: 32px;
         }
         .ai-banner-input::placeholder { color: rgba(255,255,255,0.7); }
         .ai-banner-send {
-          width: 36px; height: 36px; background: white; color: var(--accent);
+          width: 32px; height: 32px; background: white; color: var(--accent);
           border: none; border-radius: 50%;
           display: flex; align-items: center; justify-content: center;
           cursor: pointer; transition: all 0.3s ease;
@@ -449,11 +453,98 @@ export default function AIBanner({ pendingCount, todos, todayClasses, notes, mem
 
         @media (max-width: 768px) {
           .ai-banner { padding: 22px; border-radius: 28px; }
-          .ai-banner-header { gap: 12px; }
+          .ai-banner-header { gap: 12px; margin-bottom: 20px; }
           .ai-banner-icon { width: 48px; height: 48px; }
           .ai-banner-text h2 { font-size: 18px; }
-          .ai-banner-text p { font-size: 13px; }
+          .ai-banner-text p { font-size: 13px; margin-top: 4px; }
           .ai-banner-input-wrapper { max-width: none; }
+          .ai-banner-input-inner { padding: 4px 4px 4px 16px; }
+          .ai-banner-input { height: 36px; font-size: 14px; }
+          .ai-banner-send { width: 36px; height: 36px; }
+        }
+
+        /* NOTION-STYLE DESKTOP AIBANNER */
+        @media (min-width: 1024px) {
+          .ai-banner {
+            background: var(--surface-raised);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 16px 20px;
+            color: var(--text-primary);
+            box-shadow: none !important;
+          }
+          [data-theme="dark"] .ai-banner {
+            background: var(--surface-raised);
+            border: 1px solid var(--border);
+            box-shadow: none !important;
+          }
+          .ai-banner::before { display: none; }
+          
+          .ai-banner-header { margin-bottom: 12px; gap: 12px; }
+          .ai-banner-icon {
+            width: 24px; height: 24px;
+            background: transparent; box-shadow: none;
+            color: var(--text-primary);
+            align-self: flex-start;
+            margin-top: 2px;
+          }
+          .ai-banner-icon :global(svg) { width: 24px; height: 24px; }
+          
+          .ai-banner-text h2 { font-size: 15px; color: var(--text-primary); font-weight: 600; }
+          .ai-banner-text p { font-size: 13px; color: var(--text-secondary); font-weight: 400; margin-top: 2px; }
+          .expand-indicator { color: var(--text-hint); }
+          
+          .ai-banner-input-wrapper { max-width: 100%; margin-top: 16px; }
+          .ai-banner-input-inner {
+            background: var(--surface-base);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 2px 2px 2px 12px;
+          }
+          .ai-banner-input-inner:focus-within {
+            border-color: var(--border-strong);
+            transform: none;
+          }
+          .ai-banner-input { color: var(--text-primary); font-weight: 400; }
+          .ai-input-icon { color: var(--text-hint); }
+          .ai-banner-input::placeholder { color: var(--text-hint); font-weight: 400; }
+          .ai-banner-send {
+            background: var(--surface-raised);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            box-shadow: none;
+          }
+          
+          .ai-detail-item {
+            background: var(--surface-base);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 6px 10px;
+          }
+          .ai-detail-title { color: var(--text-primary); font-size: 13px; opacity: 1; }
+          .ai-detail-item-title { color: var(--text-primary); font-weight: 500; }
+          .ai-detail-item-meta { color: var(--text-secondary); }
+          .ai-detail-item-dot { background: var(--border-strong); }
+          
+          .ai-alert-item {
+            background: var(--surface-base);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--border-strong);
+            border-radius: 4px;
+            color: var(--text-primary);
+          }
+          .ai-alert-item.urgency-high { border-left-color: var(--danger); }
+          .ai-alert-type-icon { background: var(--surface-raised); color: var(--text-primary); border-radius: 4px; }
+          .ai-alert-main-msg { color: var(--text-primary); font-weight: 600; }
+          .ai-alert-sub-details { color: var(--text-secondary); }
+          
+          .ai-thread-bubble { border-radius: 4px; }
+          .ai-thread-msg.user .ai-thread-bubble { background: var(--surface-base); border-color: var(--border); color: var(--text-primary); }
+          .ai-thread-msg.assistant .ai-thread-bubble { background: transparent; border: none; padding-left: 0; color: var(--text-primary); }
+          .markdown-body-banner code { background: var(--surface-raised); color: var(--text-primary); border: 1px solid var(--border); }
+          
+          .ai-divider { background: var(--border); margin: 16px 0; }
         }
       `}</style>
     </div>

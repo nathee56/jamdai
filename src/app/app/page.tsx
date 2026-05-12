@@ -4,7 +4,7 @@ import { useTodos } from '@/lib/hooks/useTodos';
 import { useNotes } from '@/lib/hooks/useNotes';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useSchedule } from '@/lib/hooks/useSchedule';
-import { IconCheckSquare, IconFileText, IconSparkle, IconSend, IconExternalLink, IconClock, IconCloud, IconMessageCircle } from '@/components/ui/Icons';
+import { IconCheckSquare, IconFileText, IconSparkle, IconSend, IconExternalLink, IconClock, IconCloud, IconMessageCircle, IconCalendar } from '@/components/ui/Icons';
 import PWACapsule from '@/components/ui/PWACapsule';
 import AIAlertCard from '@/components/ui/AIAlertCard';
 import WhatsNewPopup from '@/components/ui/WhatsNewPopup';
@@ -16,7 +16,7 @@ import { AnimatedProgressCircle } from '@/components/ui/AnimatedComponents';
 import EmptyState from '@/components/ui/EmptyState';
 import TaskProgressChart from '@/components/ui/TaskProgressChart';
 import DraggableWidgetCard from '@/components/ui/DraggableWidgetCard';
-import { Reorder } from 'framer-motion';
+import { Reorder, motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import AIBanner from '@/components/ui/AIBanner';
 
@@ -33,7 +33,7 @@ export default function DashboardPage() {
   const [isEditingName, setIsEditingName] = useState(false);
   const router = useRouter();
 
-  const defaultWidgetOrder = ['todos', 'notes', 'links', 'progress'];
+  const defaultWidgetOrder = ['todos', 'schedule', 'notes', 'links', 'progress'];
   const [widgetOrder, setWidgetOrder] = useState(defaultWidgetOrder);
 
   useEffect(() => {
@@ -95,15 +95,16 @@ export default function DashboardPage() {
   const completedThisWeek = todos.filter((t) => t.done).length;
   const totalTodos = todos.length;
   const progressPct = totalTodos > 0 ? Math.round((completedThisWeek / totalTodos) * 100) : 0;
+  const displayClasses = isMobile ? todayClasses.slice(0, 2) : todayClasses;
 
   // AI Proactive Alerts
   const alertContext = useMemo(() => ({
     userId: user?.uid || (isLocalMode ? 'local' : ''),
     todos: pendingTodos.map(t => `${t.title} (ส่ง: ${t.dueDate?.toLocaleDateString('th-TH') || '-'})`).join(', '),
-    schedule: '',
+    schedule: todayClasses.map(c => `${c.name} ${c.startTime}-${c.endTime}`).join(', '),
     memories: getMemoryPrompt(),
-    enabled: pendingTodos.length > 0,
-  }), [user?.uid, isLocalMode, pendingTodos, getMemoryPrompt]);
+    enabled: pendingTodos.length > 0 || todayClasses.length > 0,
+  }), [user?.uid, isLocalMode, pendingTodos, todayClasses, getMemoryPrompt]);
   const { alerts: aiAlerts, loading: alertsLoading, dismissAlert } = useAIAlert(alertContext);
 
   const aiTools = [
@@ -118,9 +119,9 @@ export default function DashboardPage() {
 
   const statItems = [
     { icon: IconCheckSquare, value: pendingTodos.length, label: 'งานค้าง', color: 'var(--accent)' },
+    { icon: IconCalendar, value: todayClasses.length, label: 'คาบวันนี้', color: 'var(--violet)' },
     { icon: IconFileText, value: notes.length, label: 'โน้ตทั้งหมด', color: 'var(--teal)' },
     { isProgress: true, value: `${progressPct}%`, label: 'ความคืบหน้า', color: 'var(--sky)' },
-    { icon: IconMessageCircle, value: 'AI', label: 'ผู้ช่วย AI', color: 'var(--violet)' },
   ];
  
   return (
@@ -141,14 +142,27 @@ export default function DashboardPage() {
       />
 
       {/* Unified Stats Grid */}
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', 
-        gap: 10, 
-        marginBottom: 24 
-      }} className="stagger-children">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ staggerChildren: 0.1, delayChildren: 0.1 }}
+        style={{ 
+          display: 'grid', 
+          gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', 
+          gap: 10, 
+          marginBottom: 24 
+        }}
+      >
         {statItems.map((stat, i) => (
-          <div key={i} className="card stat-card mobile-card" style={{ textAlign: 'center', padding: '16px 14px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <motion.div 
+            key={i} 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            whileHover={{ scale: 1.02, translateY: -2 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            className="card stat-card mobile-card" 
+            style={{ textAlign: 'center', padding: '16px 14px', display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'default' }}
+          >
             {stat.isProgress ? (
               <div style={{ marginBottom: 6 }}>
                 <AnimatedProgressCircle progress={progressPct} size={28} strokeWidth={3} />
@@ -160,9 +174,9 @@ export default function DashboardPage() {
             ) : null}
             <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 2 }}>{stat.value}</div>
             <div style={{ fontSize: 11, color: 'var(--text-hint)' }}>{stat.label}</div>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       {/* Content Grid using Reorder */}
       <Reorder.Group 
@@ -221,6 +235,38 @@ export default function DashboardPage() {
                       <h4 className="text-xs font-semibold text-secondary mb-2 uppercase tracking-wider">สถิติงาน (To-Do)</h4>
                       <TaskProgressChart completed={completedThisWeek} pending={pendingTodos.length} />
                     </div>
+                  </div>
+                )}
+              </DraggableWidgetCard>
+            );
+          }
+
+          if (widgetId === 'schedule') {
+            return (
+              <DraggableWidgetCard key="schedule" id="schedule" isDraggable={!isMobile} className="card mobile-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 999, background: 'var(--violet-soft)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <IconCalendar size={16} style={{ color: 'var(--violet)' }} />
+                    </div>
+                    <h3 style={{ fontSize: 15, fontWeight: 600 }}>คาบเรียนวันนี้</h3>
+                  </div>
+                  <Link href="/app/schedule" style={{ fontSize: 12, color: 'var(--violet)', textDecoration: 'none', fontWeight: 500 }}>ดูตาราง →</Link>
+                </div>
+                {displayClasses.length === 0 ? (
+                  <p style={{ fontSize: 13, color: 'var(--text-hint)', textAlign: 'center', padding: 20 }}>วันนี้ไม่มีคาบเรียน</p>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {displayClasses.map((cls) => (
+                      <div key={cls.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: 10, background: 'var(--violet-soft)', borderRadius: 10, border: '1px solid var(--border)' }}>
+                        <IconClock size={15} style={{ color: 'var(--violet)', flexShrink: 0 }} />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 13, fontWeight: 500 }}>{cls.name}</div>
+                          <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{cls.room} - {cls.teacher}</div>
+                        </div>
+                        <span className="pill" style={{ fontSize: 10, background: 'var(--violet-soft)', color: 'var(--violet)', border: '1px solid var(--violet)', borderColor: 'rgba(139,92,246,0.2)' }}>{cls.startTime}-{cls.endTime}</span>
+                      </div>
+                    ))}
                   </div>
                 )}
               </DraggableWidgetCard>

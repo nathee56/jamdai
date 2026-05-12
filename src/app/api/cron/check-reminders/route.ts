@@ -115,7 +115,7 @@ export async function GET(req: NextRequest) {
           title: '🌤️ สรุปแผนวันนี้',
           body: aiResponseText.trim(),
           icon: '/icon-192.png',
-          url: '/dashboard',
+          url: '/app',
         });
 
         for (const subDoc of subsSnapshot.docs) {

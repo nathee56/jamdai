@@ -11,6 +11,7 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  model?: string;
 }
 
 export interface Chat {
@@ -21,14 +22,39 @@ export interface Chat {
   createdAt: Date;
 }
 
+// Local storage helpers for local mode
+const LOCAL_CHATS_KEY = 'studyos_local_chats';
+function getLocalChats(): Chat[] {
+  try {
+    const raw = localStorage.getItem(LOCAL_CHATS_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw).map((c: Record<string, unknown>) => ({
+      ...c,
+      createdAt: new Date(c.createdAt as string),
+      messages: ((c.messages || []) as Record<string, unknown>[]).map(m => ({
+        ...m, timestamp: new Date(m.timestamp as string),
+      })),
+    }));
+  } catch { return []; }
+}
+function saveLocalChats(chats: Chat[]) {
+  localStorage.setItem(LOCAL_CHATS_KEY, JSON.stringify(chats));
+}
+
 export function useChat() {
-  const { user } = useAuth();
+  const { user, isLocalMode } = useAuth();
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChat, setActiveChat] = useState<Chat | null>(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
 
+  // Firebase listener for logged-in users
   useEffect(() => {
+    if (isLocalMode) {
+      setChats(getLocalChats());
+      setLoading(false);
+      return;
+    }
     if (!user) { setChats([]); setLoading(false); return; }
     const q = query(collection(db, 'users', user.uid, 'chats'), orderBy('createdAt', 'desc'));
     const unsub = onSnapshot(q, (snap) => {
@@ -40,6 +66,7 @@ export function useChat() {
             role: m.role as 'user' | 'assistant',
             content: m.content as string,
             timestamp: (m.timestamp as Timestamp)?.toDate() || new Date(),
+            model: m.model as string | undefined,
           })),
           model: data.model || '',
           createdAt: data.createdAt?.toDate() || new Date(),
@@ -49,7 +76,7 @@ export function useChat() {
       setLoading(false);
     });
     return () => unsub();
-  }, [user]);
+  }, [user, isLocalMode]);
 
   // Sync activeChat when chats update
   useEffect(() => {
@@ -62,6 +89,15 @@ export function useChat() {
   }, [chats, activeChat]);
 
   const createChat = useCallback(async (model: string) => {
+    if (isLocalMode) {
+      const id = 'local_' + Date.now();
+      const newChat: Chat = { id, title: 'แชทใหม่', messages: [], model, createdAt: new Date() };
+      const updated = [newChat, ...getLocalChats()];
+      saveLocalChats(updated);
+      setChats(updated);
+      setActiveChat(newChat);
+      return id;
+    }
     if (!user) return '';
     const ref = await addDoc(collection(db, 'users', user.uid, 'chats'), {
       title: 'แชทใหม่', messages: [], model, createdAt: Timestamp.now(),
@@ -69,26 +105,38 @@ export function useChat() {
     const newChat: Chat = { id: ref.id, title: 'แชทใหม่', messages: [], model, createdAt: new Date() };
     setActiveChat(newChat);
     return ref.id;
-  }, [user]);
+  }, [user, isLocalMode]);
 
   const sendMessage = useCallback(async (
     chatId: string, content: string, model: string,
     systemPrompt: string
   ) => {
-    if (!user || sending) return;
+    if (sending) return;
+    if (!isLocalMode && !user) return;
     setSending(true);
     try {
-      const chat = chats.find((c) => c.id === chatId);
+      // Build messages
+      const chat = chats.find((c) => c.id === chatId) || activeChat;
       const userMsg: ChatMessage = { role: 'user', content, timestamp: new Date() };
       const currentMessages = chat ? [...chat.messages, userMsg] : [userMsg];
+      const title = currentMessages.length <= 1 ? content.slice(0, 40) : (chat?.title || content.slice(0, 40));
 
       // Save user message
-      await updateDoc(doc(db, 'users', user.uid, 'chats', chatId), {
-        messages: currentMessages.map((m) => ({
-          ...m, timestamp: Timestamp.fromDate(m.timestamp),
-        })),
-        title: currentMessages.length <= 1 ? content.slice(0, 40) : (chat?.title || content.slice(0, 40)),
-      });
+      if (isLocalMode) {
+        const all = getLocalChats();
+        const idx = all.findIndex(c => c.id === chatId);
+        if (idx >= 0) { all[idx].messages = currentMessages; all[idx].title = title; }
+        saveLocalChats(all);
+        setChats([...all]);
+        setActiveChat(all[idx] || null);
+      } else if (user) {
+        await updateDoc(doc(db, 'users', user.uid, 'chats', chatId), {
+          messages: currentMessages.map((m) => ({
+            ...m, timestamp: Timestamp.fromDate(m.timestamp),
+          })),
+          title,
+        });
+      }
 
       // Call AI
       const apiMessages = [
@@ -102,21 +150,38 @@ export function useChat() {
         body: JSON.stringify({ messages: apiMessages, model }),
       });
 
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || `AI Error: ${res.status}`);
+      }
+
       const data = await res.json();
       const aiMsg: ChatMessage = {
         role: 'assistant',
         content: data.content || 'ขออภัย ไม่สามารถตอบได้ในขณะนี้',
         timestamp: new Date(),
+        model: typeof model === 'string' ? model : undefined,
       };
 
       const allMessages = [...currentMessages, aiMsg];
-      await updateDoc(doc(db, 'users', user.uid, 'chats', chatId), {
-        messages: allMessages.map((m) => ({
-          ...m, timestamp: Timestamp.fromDate(m.timestamp),
-        })),
-      });
 
-      // Background: extract memories from conversation
+      // Save AI response
+      if (isLocalMode) {
+        const all = getLocalChats();
+        const idx = all.findIndex(c => c.id === chatId);
+        if (idx >= 0) { all[idx].messages = allMessages; }
+        saveLocalChats(all);
+        setChats([...all]);
+        setActiveChat(all[idx] || null);
+      } else if (user) {
+        await updateDoc(doc(db, 'users', user.uid, 'chats', chatId), {
+          messages: allMessages.map((m) => ({
+            ...m, timestamp: Timestamp.fromDate(m.timestamp),
+          })),
+        });
+      }
+
+      // Background: extract memories
       try {
         const extractRes = await fetch('/api/ai/extract-memory', {
           method: 'POST',
@@ -128,23 +193,30 @@ export function useChat() {
         if (extractRes.ok) {
           const extractData = await extractRes.json();
           if (extractData.memories?.length > 0) {
-            // Store extracted memories - dispatch event for useAIMemory to pick up
             window.dispatchEvent(new CustomEvent('ai-memories-extracted', {
               detail: extractData.memories,
             }));
           }
         }
       } catch {
-        // Silent fail for memory extraction - it's non-critical
+        // Silent fail for memory extraction
       }
     } catch (error) {
       console.error('Send message error:', error);
+      throw error;
     } finally {
       setSending(false);
     }
-  }, [user, sending, chats]);
+  }, [user, isLocalMode, sending, chats, activeChat]);
 
   const deleteChat = useCallback(async (chatId: string) => {
+    if (isLocalMode) {
+      const all = getLocalChats().filter(c => c.id !== chatId);
+      saveLocalChats(all);
+      setChats(all);
+      if (activeChat?.id === chatId) setActiveChat(null);
+      return;
+    }
     if (!user) return;
     try {
       const { deleteDoc } = await import('firebase/firestore');
@@ -155,7 +227,7 @@ export function useChat() {
     } catch (error) {
       console.error('Delete chat error:', error);
     }
-  }, [user, activeChat]);
+  }, [user, isLocalMode, activeChat]);
 
   return { chats, activeChat, setActiveChat, loading, sending, createChat, sendMessage, deleteChat };
 }

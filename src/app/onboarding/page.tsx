@@ -30,7 +30,7 @@ export default function OnboardingPage() {
   // Redirect if onboarding already done
   useEffect(() => {
     if (!authLoading && !onboardingLoading && !needsOnboarding) {
-      const dest = isLocalMode ? '/app' : (user ? '/dashboard' : '/login');
+      const dest = '/app';
       router.replace(dest);
     }
   }, [authLoading, onboardingLoading, needsOnboarding, isLocalMode, user, router]);
@@ -81,7 +81,7 @@ export default function OnboardingPage() {
       await setPin(pin1);
     }
     await completeOnboarding();
-    const dest = isLocalMode ? '/app' : '/dashboard';
+    const dest = '/app';
     router.replace(dest);
   }, [pin1, pin2, skipPin, setPin, completeOnboarding, isLocalMode, router]);
 
@@ -138,7 +138,7 @@ export default function OnboardingPage() {
     </div>,
 
     // ── SLIDE 2: Dashboard ──
-    <div key="dashboard" style={{ textAlign: 'center' }}>
+    <div key="app" style={{ textAlign: 'center' }}>
       <div style={{
         width: 80, height: 80, borderRadius: 999, margin: '0 auto 24px',
         background: 'var(--accent-soft)',

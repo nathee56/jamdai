@@ -7,7 +7,7 @@ import { useOnboarding } from '@/lib/hooks/useOnboarding';
 import Sidebar from '@/components/layout/Sidebar';
 import Topbar from '@/components/layout/Topbar';
 import MobileNav from '@/components/layout/MobileNav';
-import LockScreen from '@/components/lock/LockScreen';
+
 import PWAPrompt from '@/components/ui/PWAPrompt';
 import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -73,14 +73,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (!user && !isLocalMode) return null;
   if (needsOnboarding) return null;
 
-  let key = pathname.replace(/^\/(dashboard|app)/, '');
+  let key = pathname.replace(/^\/app/, '');
   if (key === '') key = '/';
   
   const basePathname = '/' + (key.split('/')[1] || '');
   const pageInfo = pageTitles[basePathname] || pageTitles[key] || { title: 'JamDai' };
 
   return (
-    <LockScreen>
     <div className="app-layout" data-is-mobile={isMobile}>
       {/* Mobile overrides are handled in globals.css */}
 
@@ -99,6 +98,5 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <MobileNav />
       <PWAPrompt />
     </div>
-    </LockScreen>
   );
 }

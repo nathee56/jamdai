@@ -7,10 +7,15 @@ import { CHANGELOG, CURRENT_VERSION } from '@/lib/changelog';
 export default function WhatsNewPopup() {
   const [show, setShow] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const latest = CHANGELOG[0];
 
   useEffect(() => {
     setMounted(true);
+    const check = () => setIsMobile(window.innerWidth <= 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
   }, []);
 
   useEffect(() => {
@@ -72,11 +77,13 @@ export default function WhatsNewPopup() {
         position: 'relative', zIndex: 1,
         width: '100%', maxWidth: 380,
         maxHeight: 'calc(100vh - 120px)',
-        background: 'var(--surface-card, #fff)',
+        background: isMobile ? 'color-mix(in srgb, var(--surface-card) 30%, transparent)' : 'var(--surface-card, #fff)',
+        backdropFilter: isMobile ? 'blur(40px) saturate(250%)' : 'none',
+        WebkitBackdropFilter: isMobile ? 'blur(40px) saturate(250%)' : 'none',
         borderRadius: 24,
         overflow: 'hidden',
-        boxShadow: '0 25px 80px rgba(0,0,0,0.4)',
-        border: 'none',
+        boxShadow: isMobile ? '0 25px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.4)' : '0 25px 80px rgba(0,0,0,0.4)',
+        border: isMobile ? '0.5px solid rgba(255,255,255,0.3)' : 'none',
         animation: 'wnSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
         display: 'flex',
         flexDirection: 'column' as const,
@@ -113,6 +120,7 @@ export default function WhatsNewPopup() {
           overflowY: 'auto',
           flex: 1,
           minHeight: 0,
+          background: isMobile ? 'color-mix(in srgb, var(--surface-card) 40%, transparent)' : 'transparent',
         }}>
           {latest.highlights.map((h, i) => (
             <div key={i} style={{

@@ -12,9 +12,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (!loading && isLocalMode) router.replace('/app');
     else if (!loading && user) {
-      // Determine tier from email
-      const isNU = user.email?.endsWith('@nsru.ac.th');
-      router.replace(isNU ? '/dashboard' : '/app');
+      router.replace('/app');
     }
   }, [user, isLocalMode, loading, router]);
 
@@ -86,7 +84,7 @@ export default function LoginPage() {
         </button>
 
         <p style={{ fontSize: 13, color: 'var(--text-hint)', marginBottom: 28, lineHeight: 1.5 }}>
-          เข้าสู่ระบบเพื่อเปิดใช้งาน Google Drive<br />และซิงค์ข้อมูลข้ามอุปกรณ์
+          เข้าสู่ระบบเพื่อซิงค์ข้อมูลข้ามอุปกรณ์
         </p>
 
         {/* Divider */}
@@ -122,7 +120,7 @@ export default function LoginPage() {
           background: 'var(--surface-base)', borderRadius: 16, 
         }}>
           <p style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.6, fontWeight: 500 }}>
-            <strong style={{ color: 'var(--accent)' }}>Local Mode:</strong> ข้อมูลจะถูกเก็บไว้ในเครื่องนี้เท่านั้น ไม่มีการขอสิทธิ์ Google และไม่ซิงค์ผ่านคลาวด์
+            <strong style={{ color: 'var(--accent)' }}>Local Mode:</strong> ข้อมูลจะถูกเก็บไว้ในเครื่องนี้เท่านั้น และไม่ซิงค์ผ่านคลาวด์
           </p>
         </div>
       </div>

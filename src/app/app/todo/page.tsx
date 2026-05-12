@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTodos, Todo } from '@/lib/hooks/useTodos';
 import { useSchedule } from '@/lib/hooks/useSchedule';
 import { IconSearch, IconPlus, IconCheck, IconTrash, IconFilter, IconSort, IconSparkle, IconCheckSquare, IconChevronRight } from '@/components/ui/Icons';
@@ -27,14 +29,25 @@ export default function TodoPage() {
   const [newPriority, setNewPriority] = useState<'normal' | 'urgent'>('normal');
   const [newDueDate, setNewDueDate] = useState('');
   const [newDifficulty, setNewDifficulty] = useState<number>(3);
+  const [showMobileModal, setShowMobileModal] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const [aiPriorities, setAiPriorities] = useState<AIPriority[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const check = () => setIsMobile(window.innerWidth <= 768);
     check();
     window.addEventListener('resize', check);
+
+    if (typeof window !== 'undefined' && window.location.search.includes('new=1')) {
+      const timer = setTimeout(() => setShowMobileModal(true), 300);
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('resize', check);
+      };
+    }
     return () => window.removeEventListener('resize', check);
   }, []);
 
@@ -107,6 +120,7 @@ export default function TodoPage() {
       dueDate: newDueDate ? new Date(newDueDate) : null, done: false,
     });
     setNewTitle(''); setNewSubject(''); setNewPriority('normal'); setNewDueDate(''); setNewDifficulty(3);
+    setShowMobileModal(false);
   };
 
   const renderTodoItem = (todo: Todo) => {
@@ -206,29 +220,131 @@ export default function TodoPage() {
           {filtered.length === 0 ? <p style={{ padding: 40, textAlign: 'center', color: 'var(--text-hint)' }}>ไม่พบรายการงาน</p> : filtered.map(renderTodoItem)}
         </div>
 
-        {/* Add Task Form */}
-        <div className="card" style={{ marginTop: 24, padding: 20 }}>
-           <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 12 }}>เพิ่มงานใหม่</h3>
-           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <input className="input" placeholder="ทำอะไรดี..." value={newTitle} onChange={(e) => setNewTitle(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAdd()} />
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                 <select className="input" style={{ flex: 1 }} value={newSubject} onChange={e => setNewSubject(e.target.value)}>
-                    <option value="">วิชา</option>
-                    {subjects.map(s => <option key={s} value={s}>{s}</option>)}
-                 </select>
-                 <select className="input" style={{ flex: 1 }} value={newPriority} onChange={e => setNewPriority(e.target.value as any)}>
-                    <option value="normal">ปกติ</option>
-                    <option value="urgent">ด่วน</option>
-                 </select>
-                 <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: 12 }}>ยาก:</span>
-                    <input type="range" min="1" max="5" value={newDifficulty} onChange={e => setNewDifficulty(parseInt(e.target.value))} style={{ flex: 1 }} />
-                 </div>
-                 <input type="date" className="input" value={newDueDate} onChange={e => setNewDueDate(e.target.value)} />
+        {/* Add Task Form (Desktop inline, Mobile hidden) */}
+        {!isMobile ? (
+          <div className="card" style={{ marginTop: 24, padding: 20 }}>
+             <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 12 }}>เพิ่มงานใหม่</h3>
+             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <input className="input" placeholder="ทำอะไรดี..." value={newTitle} onChange={(e) => setNewTitle(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAdd()} />
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                   <select className="input" style={{ flex: 1 }} value={newSubject} onChange={e => setNewSubject(e.target.value)}>
+                      <option value="">วิชา</option>
+                      {subjects.map(s => <option key={s} value={s}>{s}</option>)}
+                   </select>
+                   <select className="input" style={{ flex: 1 }} value={newPriority} onChange={e => setNewPriority(e.target.value as any)}>
+                      <option value="normal">ปกติ</option>
+                      <option value="urgent">ด่วน</option>
+                   </select>
+                   <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 12 }}>ยาก:</span>
+                      <input type="range" min="1" max="5" value={newDifficulty} onChange={e => setNewDifficulty(parseInt(e.target.value))} style={{ flex: 1 }} />
+                   </div>
+                   <input type="date" className="input" value={newDueDate} onChange={e => setNewDueDate(e.target.value)} />
+                </div>
+                <button className="btn-primary" onClick={handleAdd} style={{ marginTop: 4 }}>เพิ่มงาน</button>
+             </div>
+          </div>
+        ) : (
+          <button 
+            onClick={() => setShowMobileModal(true)}
+            className="btn-primary"
+            style={{ 
+              width: '100%', marginTop: 20, padding: 16, borderRadius: 20, 
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              fontSize: 15, fontWeight: 700,
+              background: 'color-mix(in srgb, var(--accent) 90%, transparent)'
+            }}
+          >
+            <IconPlus size={18} />
+            <span>เพิ่มงานใหม่</span>
+          </button>
+        )}
+
+        {/* Mobile Glassmorphism Modal Portal */}
+        {mounted && isMobile && createPortal(
+          <AnimatePresence>
+            {showMobileModal && (
+              <div style={{
+                position: 'fixed', inset: 0, zIndex: 99999,
+                display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+                padding: '16px 16px 32px'
+              }}>
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setShowMobileModal(false)}
+                  style={{
+                    position: 'absolute', inset: 0,
+                    background: 'rgba(0,0,0,0.5)',
+                    backdropFilter: 'blur(8px)',
+                    WebkitBackdropFilter: 'blur(8px)'
+                  }}
+                />
+                
+                <motion.div
+                  initial={{ y: 300, opacity: 0, scale: 0.95 }}
+                  animate={{ y: 0, opacity: 1, scale: 1 }}
+                  exit={{ y: 200, opacity: 0, scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 320, damping: 28 }}
+                  onClick={e => e.stopPropagation()}
+                  style={{
+                    position: 'relative', zIndex: 1,
+                    width: '100%', maxWidth: 400,
+                    background: 'var(--surface-card)',
+                    borderRadius: 32,
+                    overflow: 'hidden',
+                    boxShadow: '0 25px 60px rgba(0,0,0,0.25)',
+                    border: '1px solid var(--border)',
+                    display: 'flex', flexDirection: 'column'
+                  }}
+                >
+                  {/* Vibrant Line Art / Gradient Header Bar */}
+                  <div style={{ 
+                    padding: '24px 24px 16px', 
+                    background: 'linear-gradient(135deg, var(--orange) 0%, var(--accent) 100%)',
+                    color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <IconPlus size={22} style={{ strokeWidth: 2.5 }} />
+                      <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>เพิ่มงานใหม่</h3>
+                    </div>
+                    <button 
+                      onClick={() => setShowMobileModal(false)}
+                      style={{ background: 'rgba(255,255,255,0.2)', color: 'white', border: 'none', borderRadius: 99, width: 30, height: 30, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}
+                    >✕</button>
+                  </div>
+
+                  <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 14 }}>
+                    <div style={{ background: 'var(--surface-raised)', padding: 16, borderRadius: 20, display: 'flex', flexDirection: 'column', gap: 12, border: '1px solid var(--border)' }}>
+                      <input className="input" placeholder="ทำอะไรดี..." value={newTitle} onChange={(e) => setNewTitle(e.target.value)} style={{ background: 'var(--surface-card)', borderColor: 'var(--border)' }} />
+                      <div style={{ display: 'flex', gap: 8 }}>
+                         <select className="input" style={{ flex: 1, background: 'var(--surface-card)', borderColor: 'var(--border)' }} value={newSubject} onChange={e => setNewSubject(e.target.value)}>
+                            <option value="">วิชา</option>
+                            {subjects.map(s => <option key={s} value={s}>{s}</option>)}
+                         </select>
+                         <select className="input" style={{ flex: 1, background: 'var(--surface-card)', borderColor: 'var(--border)' }} value={newPriority} onChange={e => setNewPriority(e.target.value as any)}>
+                            <option value="normal">ปกติ</option>
+                            <option value="urgent">ด่วน</option>
+                         </select>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--surface-card)', padding: '8px 12px', borderRadius: 14, border: '1px solid var(--border)' }}>
+                         <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent)' }}>ยาก:</span>
+                         <input type="range" min="1" max="5" value={newDifficulty} onChange={e => setNewDifficulty(parseInt(e.target.value))} style={{ flex: 1 }} />
+                      </div>
+                      <input type="date" className="input" value={newDueDate} onChange={e => setNewDueDate(e.target.value)} style={{ background: 'var(--surface-card)', borderColor: 'var(--border)' }} />
+                    </div>
+
+                    <button className="btn-primary" onClick={handleAdd} style={{ padding: 14, borderRadius: 16, fontSize: 15, fontWeight: 700, background: 'linear-gradient(135deg, var(--accent), var(--orange))', border: 'none' }}>
+                      ยืนยันเพิ่มงาน
+                    </button>
+                  </div>
+                </motion.div>
               </div>
-              <button className="btn-primary" onClick={handleAdd} style={{ marginTop: 4 }}>เพิ่มงาน</button>
-           </div>
-        </div>
+            )}
+          </AnimatePresence>,
+          document.body
+        )}
 
         <style jsx>{`
           .pill.active { transform: scale(1.05); }

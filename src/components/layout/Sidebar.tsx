@@ -9,23 +9,12 @@ import {
 } from '@/components/ui/Icons';
 import { useState, useEffect } from 'react';
 
-const nuNavItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: IconHome },
-  { href: '/dashboard/todo', label: 'To-Do List', icon: IconCheckSquare },
-  { href: '/dashboard/schedule', label: 'ตารางเรียน', icon: IconCalendar },
-  { href: '/dashboard/notes', label: 'Notes', icon: IconFileText },
-  { href: '/dashboard/pomodoro', label: 'Pomodoro', icon: IconClock },
-  { href: '/dashboard/google-workspace', label: 'Google Workspace', icon: IconMail },
-  { href: '/dashboard/ai-tools', label: 'AI Tools', icon: IconCpu },
-  { href: '/dashboard/ai', label: 'AI Assistant', icon: IconMessageCircle },
-];
-
-const publicNavItems = [
+const navItems = [
   { href: '/app', label: 'หน้าแรก', icon: IconHome },
-  { href: '/app/todo', label: 'งาน', icon: IconCheckSquare },
-  { href: '/app/notes', label: 'โน้ต', icon: IconFileText },
-  { href: '/app/pomodoro', label: 'Pomodoro', icon: IconClock },
-  { href: '/app/ai', label: 'AI', icon: IconMessageCircle },
+  { href: '/app/todo', label: 'งาน (To-Do)', icon: IconCheckSquare },
+  { href: '/app/schedule', label: 'ตารางเรียน', icon: IconCalendar },
+  { href: '/app/notes', label: 'โน้ต (Notes)', icon: IconFileText },
+  { href: '/app/ai', label: 'AI Assistant', icon: IconMessageCircle },
 ];
 
 export default function Sidebar() {
@@ -43,56 +32,84 @@ export default function Sidebar() {
     }
   }, [isCollapsed]);
   
-  const isNU = pathname.startsWith('/dashboard');
-  
-  // Local mode: only show core features
-  const localNavItems = [
-    { href: '/app', label: 'หน้าแรก', icon: IconHome },
-    { href: '/app/todo', label: 'งาน', icon: IconCheckSquare },
-    { href: '/app/notes', label: 'โน้ต', icon: IconFileText },
-    { href: '/app/pomodoro', label: 'Pomodoro', icon: IconClock },
-    { href: '/app/ai', label: 'AI', icon: IconMessageCircle },
-  ];
-  
-  const navItems = isLocalMode ? localNavItems : isNU ? nuNavItems : publicNavItems;
-
   const filteredNavItems = navItems;
 
   const isActive = (href: string) => {
-    if (href === '/dashboard' || href === '/app') return pathname === href;
+    if (href === '/app') return pathname === href;
     return pathname.startsWith(href);
   };
 
   return (
     <aside className="sidebar">
-      {/* Logo */}
-      <div style={{ padding: isCollapsed ? '24px 8px 16px' : '24px 16px 16px', display: 'flex', justifyContent: 'center' }}>
-        {!isCollapsed ? (
-          <div className="sidebar-logo-text" style={{ padding: '0 8px', display: 'flex', alignItems: 'center', position: 'relative' }}>
-            <img src="/logo.png" alt="JamDai" style={{ height: 56, objectFit: 'contain' }} />
-            <span style={{ 
-              position: 'absolute', 
-              top: 0, 
-              right: -5, 
-              background: 'var(--orange)', 
-              color: 'white', 
-              fontSize: '10px', 
-              padding: '2px 6px', 
-              borderRadius: '10px',
-              fontWeight: 700,
-              boxShadow: '0 2px 4px rgba(255, 107, 26, 0.3)',
-              transform: 'rotate(5deg)'
-            }}>BETA</span>
-          </div>
+      {/* Top Section: Workspace / User Profile (Notion style) */}
+      <div style={{ padding: isCollapsed ? '16px 8px' : '16px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', transition: 'background 0.2s' }} className="hover:bg-surface-raised">
+        {user ? (
+          <>
+            <div style={{
+              width: 28, height: 28, borderRadius: '4px', overflow: 'hidden',
+              background: 'var(--surface-base)', flexShrink: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: '1px solid var(--border)'
+            }}>
+              {user.photoURL ? (
+                <img src={user.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)' }}>
+                  {user.displayName?.charAt(0) || 'U'}
+                </span>
+              )}
+            </div>
+            {!isCollapsed && (
+              <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {user.displayName ? `${user.displayName}'s OS` : 'Study OS'}
+                </div>
+                <IconChevronRight size={14} style={{ color: 'var(--text-hint)' }} />
+              </div>
+            )}
+          </>
+        ) : isLocalMode ? (
+          <>
+            <div style={{
+              width: 28, height: 28, borderRadius: '4px',
+              background: 'var(--surface-base)', flexShrink: 0, border: '1px solid var(--border)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <IconCloud size={16} style={{ color: 'var(--text-secondary)' }} />
+            </div>
+            {!isCollapsed && (
+              <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  โหมดส่วนตัว
+                </div>
+                <IconChevronRight size={14} style={{ color: 'var(--text-hint)' }} />
+              </div>
+            )}
+          </>
         ) : (
-          <div className="sidebar-logo-icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40, borderRadius: '12px', background: 'var(--orange-light)' }}>
-            <span style={{ fontSize: 22, fontWeight: 700, color: 'var(--orange)' }}>J</span>
+          <div style={{ width: 28, height: 28, borderRadius: '4px', background: 'var(--accent)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 14 }}>
+            OS
           </div>
         )}
       </div>
 
+      {/* Search / AI Quick Action (Optional Notion style addition) */}
+      {!isCollapsed && (
+        <div style={{ padding: '0 16px', marginBottom: 12 }}>
+          <button style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', background: 'transparent', border: '1px solid transparent', borderRadius: '4px', color: 'var(--text-secondary)', fontSize: 13, cursor: 'pointer' }} className="hover:bg-[rgba(0,0,0,0.05)] dark:hover:bg-[rgba(255,255,255,0.05)] transition-colors">
+            <IconMessageCircle size={14} />
+            <span>ค้นหา หรือถาม AI...</span>
+          </button>
+        </div>
+      )}
+
       {/* Navigation */}
-      <nav style={{ flex: 1, paddingTop: 4, overflowY: 'auto', paddingLeft: isCollapsed ? 8 : 16, paddingRight: isCollapsed ? 8 : 16 }}>
+      <nav style={{ flex: 1, overflowY: 'auto', paddingLeft: isCollapsed ? 8 : 12, paddingRight: isCollapsed ? 8 : 12 }}>
+        {!isCollapsed && (
+          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-hint)', padding: '12px 12px 4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            Workspace
+          </div>
+        )}
         {filteredNavItems.map((item) => (
           <Link
             key={item.href}
@@ -101,114 +118,84 @@ export default function Sidebar() {
             title={item.label}
             style={{ 
               justifyContent: isCollapsed ? 'center' : 'flex-start',
-              padding: isCollapsed ? '0' : '0 16px',
-              width: isCollapsed ? '44px' : 'auto',
-              margin: isCollapsed ? '4px auto' : '4px 8px'
+              padding: isCollapsed ? '0' : '0 10px',
+              width: isCollapsed ? '36px' : 'auto',
+              margin: isCollapsed ? '4px auto' : '2px 0',
+              height: 30,
+              gap: 10
             }}
           >
-            <item.icon size={20} />
-            {!isCollapsed && <span>{item.label}</span>}
+            <item.icon size={16} />
+            {!isCollapsed && <span style={{ fontSize: 13.5 }}>{item.label}</span>}
           </Link>
         ))}
 
-        <div style={{ margin: '12px 16px', borderTop: '0.5px solid var(--border)' }} />
+        <div style={{ margin: '16px 12px 8px', borderTop: '1px solid var(--border)' }} />
+
+        {!isCollapsed && (
+          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-hint)', padding: '8px 12px 4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            System
+          </div>
+        )}
 
         <Link
-          href={isLocalMode ? '/app/settings' : isNU ? '/dashboard/settings' : '/app/settings'}
-          className={`nav-item ${isActive('/settings') || isActive('/dashboard/settings') || isActive('/app/settings') ? 'active' : ''}`}
+          href="/app/settings"
+          className={`nav-item ${isActive('/app/settings') ? 'active' : ''}`}
           title="ตั้งค่า"
           style={{ 
             justifyContent: isCollapsed ? 'center' : 'flex-start',
-            padding: isCollapsed ? '0' : '0 16px',
-            width: isCollapsed ? '44px' : 'auto',
-            margin: isCollapsed ? '4px auto' : '4px 8px'
+            padding: isCollapsed ? '0' : '0 10px',
+            width: isCollapsed ? '36px' : 'auto',
+            margin: isCollapsed ? '4px auto' : '2px 0',
+            height: 30,
+            gap: 10
           }}
         >
-          <IconSettings size={20} />
-          {!isCollapsed && <span>ตั้งค่า</span>}
+          <IconSettings size={16} />
+          {!isCollapsed && <span style={{ fontSize: 13.5 }}>ตั้งค่า</span>}
         </Link>
+        
+        {user || isLocalMode ? (
+          <button
+            onClick={signOut}
+            className="nav-item"
+            title="ออกจากระบบ"
+            style={{ 
+              justifyContent: isCollapsed ? 'center' : 'flex-start',
+              padding: isCollapsed ? '0' : '0 10px',
+              width: isCollapsed ? '36px' : '100%',
+              margin: isCollapsed ? '4px auto' : '2px 0',
+              height: 30,
+              gap: 10,
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--danger)',
+              cursor: 'pointer'
+            }}
+          >
+            <IconLogOut size={16} />
+            {!isCollapsed && <span style={{ fontSize: 13.5 }}>ออกจากระบบ</span>}
+          </button>
+        ) : null}
       </nav>
 
-      {/* Collapse Toggle */}
-      <div style={{ padding: '8px', display: 'flex', justifyContent: isCollapsed ? 'center' : 'flex-end' }}>
+      {/* Collapse Toggle & Footer */}
+      <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: isCollapsed ? 'center' : 'space-between', borderTop: '1px solid var(--border)' }}>
+        {!isCollapsed && (
+          <div style={{ fontSize: 11, color: 'var(--text-hint)', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ width: 6, height: 6, background: 'var(--success)', borderRadius: '50%' }}></span>
+            ระบบทำงานปกติ
+          </div>
+        )}
         <button 
           onClick={() => setIsCollapsed(!isCollapsed)}
           className="btn-icon" 
-          style={{ width: 32, height: 32, background: 'var(--surface-raised)' }}
+          style={{ width: 24, height: 24, color: 'var(--text-secondary)' }}
           title={isCollapsed ? "ขยายเมนู" : "ย่อเมนู"}
         >
-          {isCollapsed ? <IconChevronRight size={16} /> : <IconChevronLeft size={16} />}
+          {isCollapsed ? <IconChevronRight size={14} /> : <IconChevronLeft size={14} />}
         </button>
       </div>
-
-      {/* User Profile */}
-      {user ? (
-        <div style={{
-          padding: isCollapsed ? '16px 8px' : '16px', 
-          borderTop: '1px solid var(--border)',
-          display: 'flex', alignItems: 'center', 
-          justifyContent: isCollapsed ? 'center' : 'flex-start',
-          gap: 12,
-        }}>
-          <div style={{
-            width: 36, height: 36, borderRadius: '50%', overflow: 'hidden',
-            background: 'var(--surface-raised)', flexShrink: 0,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            border: '2px solid var(--surface-card)',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
-          }}>
-            {user.photoURL ? (
-              <img src={user.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            ) : (
-              <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-secondary)' }}>
-                {user.displayName?.charAt(0) || 'U'}
-              </span>
-            )}
-          </div>
-          {!isCollapsed && (
-            <>
-              <div className="sidebar-user-info" style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {user.displayName || 'ผู้ใช้'}
-                </div>
-                <div style={{ fontSize: 12, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {user.email}
-                </div>
-              </div>
-              <button className="btn-icon sidebar-user-info" onClick={signOut} title="ออกจากระบบ" style={{ width: 32, height: 32 }}>
-                <IconLogOut size={16} />
-              </button>
-            </>
-          )}
-        </div>
-      ) : isLocalMode && (
-        <div style={{
-          padding: isCollapsed ? '16px 8px' : '16px', 
-          borderTop: '1px solid var(--border)',
-          display: 'flex', alignItems: 'center', 
-          justifyContent: isCollapsed ? 'center' : 'flex-start',
-          gap: 10,
-        }}>
-          <div style={{
-            width: 36, height: 36, borderRadius: '50%',
-            background: 'var(--surface-raised)', flexShrink: 0,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <IconCloud size={18} style={{ color: 'var(--text-secondary)' }} />
-          </div>
-          {!isCollapsed && (
-            <>
-              <div className="sidebar-user-info" style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-secondary)' }}>โหมดส่วนตัว</div>
-                <div style={{ fontSize: 11, color: 'var(--text-hint)' }}>ข้อมูลเก็บในเครื่อง</div>
-              </div>
-              <button className="btn-icon sidebar-user-info" onClick={signOut} title="ออกจากระบบ" style={{ width: 32, height: 32 }}>
-                <IconLogOut size={16} />
-              </button>
-            </>
-          )}
-        </div>
-      )}
     </aside>
   );
 }
