@@ -82,11 +82,18 @@ export default function MobileNav() {
       <AnimatePresence>
         {showSheet && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            initial={{ opacity: 0, scale: 0.9, y: 20, x: "-50%" }}
+            animate={{ opacity: 1, scale: 1, y: 0, x: "-50%" }}
+            exit={{ opacity: 0, scale: 0.9, y: 20, x: "-50%" }}
             className="fab-sheet"
-            style={{ bottom: isScrolled ? 84 : 90 }}
+            style={{ 
+              position: 'fixed',
+              left: '50%',
+              bottom: isScrolled ? 84 : 104, // Space above the bar
+              zIndex: 100,
+              margin: 0,
+              transformOrigin: 'bottom center'
+            }}
           >
             <button className="fab-sheet-item" onClick={() => { router.push(`${basePath}/schedule`); setShowSheet(false); }}>
               <IconCalendar size={18} style={{ color: 'var(--accent)' }} />
